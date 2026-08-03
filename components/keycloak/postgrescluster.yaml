@@ -1,0 +1,32 @@
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: cf-idp-keycloak-db
+  namespace: keycloak
+  annotations:
+    argocd.argoproj.io/sync-wave: '-10'
+spec:
+  postgresVersion: 16
+  instances:
+    - name: postgres
+      replicas: 1
+      dataVolumeClaimSpec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 10Gi
+  backups:
+    pgbackrest:
+      repos:
+        - name: repo1
+          volume:
+            volumeClaimSpec:
+              accessModes: [ReadWriteOnce]
+              resources:
+                requests:
+                  storage: 10Gi
+  users:
+    - name: keycloak
+      databases: [keycloak]
+      password:
+        type: AlphaNumeric

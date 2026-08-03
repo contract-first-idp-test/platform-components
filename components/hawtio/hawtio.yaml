@@ -1,0 +1,24 @@
+apiVersion: hawt.io/v2
+kind: Hawtio
+metadata:
+  name: hawtio-online
+  namespace: hawtio
+spec:
+  type: Cluster
+  replicas: 1
+  auth:
+    clientCertCheckSchedule: '* */12 * * *'
+    clientCertExpirationPeriod: 24
+    internalSSL: true
+  healthChecks:
+    gatewayLivenessPeriod: 120
+    gatewayReadinessPeriod: 30
+    onlineLivenessPeriod: 5
+    onlineReadinessPeriod: 10
+  logging:
+    gatewayLogLevel: info
+    maskIPAddresses: 'false'
+    onlineLogLevel: info
+  resources:
+    limits: {cpu: '1', memory: 200Mi}
+    requests: {cpu: 200m, memory: 32Mi}

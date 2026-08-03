@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform-operators
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: '-30'
+spec:
+  description: Cluster operators managed through OLM
+  sourceRepos:
+  - https://github.com/contract-first-idp/platform-components.git
+  destinations:
+  - server: https://kubernetes.default.svc
+    namespace: openshift-operators
+  - server: https://kubernetes.default.svc
+    namespace: openshift-gitops-operator
+  - server: https://kubernetes.default.svc
+    namespace: external-secrets-operator
+  - server: https://kubernetes.default.svc
+    namespace: cert-manager-operator
+  - server: https://kubernetes.default.svc
+    namespace: keycloak
+  - server: https://kubernetes.default.svc
+    namespace: apicurio-designer
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  namespaceResourceWhitelist:
+  - group: operators.coreos.com
+    kind: Subscription
+  - group: operators.coreos.com
+    kind: OperatorGroup

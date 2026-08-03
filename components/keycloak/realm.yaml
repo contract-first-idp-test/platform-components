@@ -1,0 +1,196 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: KeycloakRealmImport
+metadata:
+  name: cf-idp-realm
+  namespace: keycloak
+  annotations:
+    argocd.argoproj.io/sync-wave: '10'
+spec:
+  keycloakCRName: cf-idp-keycloak
+  placeholders:
+    DEMO_USER_PASSWORD:
+      secret:
+        name: keycloak-realm-secrets
+        key: demo-user-password
+    BACKSTAGE_CLIENT_SECRET:
+      secret:
+        name: keycloak-realm-secrets
+        key: backstage-client-secret
+    MICROCKS_CLIENT_SECRET:
+      secret:
+        name: keycloak-realm-secrets
+        key: microcks-client-secret
+    DEVELOPER_HUB_URL:
+      secret:
+        name: keycloak-realm-secrets
+        key: developer-hub-url
+    DEVELOPER_HUB_OIDC_CALLBACK:
+      secret:
+        name: keycloak-realm-secrets
+        key: developer-hub-oidc-callback
+    MICROCKS_REDIRECT_URI:
+      secret:
+        name: keycloak-realm-secrets
+        key: microcks-redirect-uri
+    MICROCKS_URL:
+      secret:
+        name: keycloak-realm-secrets
+        key: microcks-url
+  realm:
+    id: cf-idp
+    realm: cf-idp
+    displayName: Contract-First IDP
+    enabled: true
+    sslRequired: external
+    registrationAllowed: false
+    loginWithEmailAllowed: true
+    defaultRoles: []
+    roles:
+      client:
+        microcks-app:
+        - name: user
+          composite: false
+          clientRole: true
+        - name: manager
+          composite: false
+          clientRole: true
+        - name: admin
+          composite: false
+          clientRole: true
+    groups:
+    - name: backstage-admins
+    - name: operators
+    - name: developers
+    - name: microcks
+      path: /microcks
+      attributes: {}
+      realmRoles: []
+      clientRoles: {}
+      subGroups:
+      - name: manager
+        path: /microcks/manager
+        attributes: {}
+        realmRoles: []
+        clientRoles: {}
+        subGroups: []
+    users:
+    - username: backstage-admin
+      enabled: true
+      emailVerified: true
+      firstName: Backstage
+      lastName: Admin
+      email: backstage-admin@example.com
+      groups:
+      - /backstage-admins
+      credentials:
+      - type: password
+        value: ${DEMO_USER_PASSWORD}
+        temporary: false
+    - username: user-ops-1
+      enabled: true
+      firstName: Operations
+      lastName: One
+      email: user-ops-1@example.com
+      groups:
+      - /operators
+      credentials:
+      - type: password
+        value: ${DEMO_USER_PASSWORD}
+        temporary: false
+    - username: user-dev-1
+      enabled: true
+      firstName: Developer
+      lastName: One
+      email: user-dev-1@example.com
+      groups:
+      - /developers
+      credentials:
+      - type: password
+        value: ${DEMO_USER_PASSWORD}
+        temporary: false
+    - username: service-account-backstage
+      enabled: true
+      serviceAccountClientId: backstage
+      clientRoles:
+        realm-management:
+        - view-users
+        - query-groups
+        - query-users
+    - username: service-account-microcks-serviceaccount
+      enabled: true
+      serviceAccountClientId: microcks-serviceaccount
+      clientRoles:
+        microcks-app:
+        - user
+        - manager
+    clientScopeMappings:
+      microcks-app:
+      - client: microcks-app-js
+        roles:
+        - manager
+        - admin
+        - user
+      realm-management:
+      - client: microcks-app-js
+        roles:
+        - manage-users
+        - manage-clients
+    clients:
+    - clientId: backstage
+      enabled: true
+      clientAuthenticatorType: client-secret
+      secret: ${BACKSTAGE_CLIENT_SECRET}
+      redirectUris:
+      - ${DEVELOPER_HUB_OIDC_CALLBACK}
+      webOrigins:
+      - ${DEVELOPER_HUB_URL}
+      standardFlowEnabled: true
+      directAccessGrantsEnabled: true
+      serviceAccountsEnabled: true
+      publicClient: false
+      defaultClientScopes:
+      - profile
+      - roles
+      - email
+    - clientId: microcks-app
+      enabled: true
+      bearerOnly: true
+      defaultRoles:
+      - user
+    - clientId: microcks-app-js
+      enabled: true
+      publicClient: true
+      standardFlowEnabled: true
+      webOrigins:
+      - ${MICROCKS_URL}
+      redirectUris:
+      - ${MICROCKS_REDIRECT_URI}
+      fullScopeAllowed: false
+      protocolMappers:
+      - name: microcks-group-mapper
+        protocol: openid-connect
+        protocolMapper: oidc-group-membership-mapper
+        consentRequired: false
+        config:
+          full.path: 'true'
+          id.token.claim: 'true'
+          access.token.claim: 'true'
+          claim.name: microcks-groups
+          userinfo.token.claim: 'true'
+    - clientId: microcks-serviceaccount
+      secret: ${MICROCKS_CLIENT_SECRET}
+      enabled: true
+      bearerOnly: false
+      publicClient: false
+      standardFlowEnabled: false
+      directAccessGrantsEnabled: true
+      serviceAccountsEnabled: true
+      clientAuthenticatorType: client-secret
+    requiredActions:
+    - alias: VERIFY_PROFILE
+      name: Verify Profile
+      providerId: VERIFY_PROFILE
+      enabled: false
+      defaultAction: false
+      priority: 90
+      config: {}

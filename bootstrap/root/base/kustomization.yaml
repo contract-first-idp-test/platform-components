@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: openshift-gitops
+resources:
+  - ../application.yaml
+configMapGenerator:
+  - name: platform-bootstrap-settings
+    envs:
+      - ../../../config/platform.env
+generatorOptions:
+  disableNameSuffixHash: true
+replacements:
+  - source:
+      kind: ConfigMap
+      name: platform-bootstrap-settings
+      fieldPath: data.PLATFORM_REPO_URL
+    targets:
+      - select: {kind: Application, name: platform-root}
+        fieldPaths: [spec.source.repoURL]
+      - select: {kind: AppProject, name: platform}
+        fieldPaths: [spec.sourceRepos.0]
+  - source:
+      kind: ConfigMap
+      name: platform-bootstrap-settings
+      fieldPath: data.PLATFORM_CONFIG_REVISION
+    targets:
+      - select: {kind: Application, name: platform-root}
+        fieldPaths: [spec.source.targetRevision]

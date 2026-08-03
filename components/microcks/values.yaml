@@ -1,0 +1,41 @@
+# Portable defaults for the official Microcks chart. Target-specific endpoints
+# belong in targets/<target>/helm/microcks.yaml.
+appName: microcks
+ingresses: true
+gatewayRoutes: false
+
+microcks:
+  replicas: 1
+  # OpenShift's Ingress-to-Route controller provides the edge certificate.
+  generateCert: false
+  resources:
+    requests: {cpu: 200m, memory: 512Mi}
+    limits: {memory: 512Mi}
+
+postman:
+  replicas: 1
+  resources:
+    requests: {memory: 256Mi}
+    limits: {memory: 256Mi}
+
+keycloak:
+  enabled: true
+  install: false
+  realm: cf-idp
+
+mongodb:
+  install: true
+  persistent: true
+  volumeSize: 2Gi
+  secretRef:
+    # The chart's bundled MongoDB workload requires this exact Secret name.
+    secret: microcks-mongodb-connection
+    usernameKey: username
+    passwordKey: password
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {memory: 512Mi}
+
+features:
+  async:
+    enabled: false

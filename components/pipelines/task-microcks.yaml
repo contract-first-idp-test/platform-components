@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: microcks-import
+  namespace: tekton-tasks
+spec:
+  params:
+    - name: specificationFilesList
+      type: string
+      default: specification.yaml:true
+    - name: image
+      type: string
+      default: quay.io/microcks/microcks-cli:0.6.0
+  workspaces:
+    - name: source
+  steps:
+    - name: import
+      image: $(params.image)
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: MICROCKS_URL
+          valueFrom: {secretKeyRef: {name: microcks-client, key: microcks-url}}
+        - name: MICROCKS_CLIENT_SECRET
+          valueFrom: {secretKeyRef: {name: microcks-client, key: client-secret}}
+      command: [/usr/bin/bash, -ec]
+      args:
+        - |
+          microcks-cli import "$(params.specificationFilesList)" \
+            --microcksURL="${MICROCKS_URL}/api/" \
+            --keycloakClientId=microcks-serviceaccount \
+            --keycloakClientSecret="${MICROCKS_CLIENT_SECRET}" \
+            --insecure

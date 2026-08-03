@@ -1,0 +1,47 @@
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: cf-idp-config
+spec:
+  conditions:
+    - namespaceSelector:
+        matchLabels:
+          platform.contract-first.io/secrets: enabled
+  provider:
+    kubernetes:
+      remoteNamespace: cf-idp-secrets
+      server:
+        url: https://kubernetes.default.svc
+        caProvider:
+          type: ConfigMap
+          name: kube-root-ca.crt
+          namespace: cf-idp-secrets
+          key: ca.crt
+      auth:
+        serviceAccount:
+          name: cf-idp-config-reader
+          namespace: cf-idp-secrets
+---
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: cf-idp-secrets
+spec:
+  conditions:
+    - namespaceSelector:
+        matchLabels:
+          platform.contract-first.io/secrets: enabled
+  provider:
+    kubernetes:
+      remoteNamespace: cf-idp-secrets
+      server:
+        url: https://kubernetes.default.svc
+        caProvider:
+          type: ConfigMap
+          name: kube-root-ca.crt
+          namespace: cf-idp-secrets
+          key: ca.crt
+      auth:
+        serviceAccount:
+          name: cf-idp-credential-reader
+          namespace: cf-idp-secrets

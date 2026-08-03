@@ -1,0 +1,27 @@
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: apicurio-db
+  namespace: apicurio
+  annotations:
+    argocd.argoproj.io/sync-wave: '-5'
+spec:
+  postgresVersion: 16
+  databaseInitSQL:
+    name: apicurio-db-init
+    key: init.sql
+  instances:
+  - name: postgres
+    replicas: 1
+    dataVolumeClaimSpec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+  users:
+  - name: apicurio
+    databases:
+    - apicurio
+    password:
+      type: AlphaNumeric

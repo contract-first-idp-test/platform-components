@@ -1,0 +1,14 @@
+apiVersion: operator.openshift.io/v1alpha1
+kind: ExternalSecretsConfig
+metadata:
+  name: cluster
+  labels:
+    app: external-secrets-operator
+    app.kubernetes.io/name: cluster
+spec:
+  controllerConfig:
+    networkPolicies:
+      - name: allow-kubernetes-provider-egress
+        componentName: ExternalSecretsCoreController
+        egress:
+          - {}

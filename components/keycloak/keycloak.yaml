@@ -1,0 +1,31 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: cf-idp-keycloak
+  namespace: keycloak
+  annotations:
+    argocd.argoproj.io/sync-wave: '0'
+spec:
+  instances: 1
+  db:
+    vendor: postgres
+    host: cf-idp-keycloak-db-primary
+    port: 5432
+    database: keycloak
+    usernameSecret:
+      name: cf-idp-keycloak-db-pguser-keycloak
+      key: user
+    passwordSecret:
+      name: cf-idp-keycloak-db-pguser-keycloak
+      key: password
+  http:
+    tlsSecret: cf-idp-keycloak-tls
+  proxy:
+    headers: xforwarded
+  ingress:
+    enabled: false
+  resources:
+    requests:
+      memory: 1700Mi
+    limits:
+      memory: 2Gi

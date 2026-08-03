@@ -1,0 +1,90 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gitea-bootstrap-admin
+  namespace: gitea
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  activeDeadlineSeconds: 600
+  backoffLimit: 6
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: bootstrap-admin
+          image: docker.io/gitea/gitea:1.26-rootless
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              /usr/local/bin/docker-setup.sh
+
+              until gitea admin user list --admin --config "$GITEA_APP_INI" > /tmp/admin-users; do
+                sleep 5
+              done
+
+              if grep -q "$GITEA_ADMIN_USERNAME" /tmp/admin-users; then
+                exit 0
+              fi
+
+              gitea admin user create \
+                --config "$GITEA_APP_INI" \
+                --username "$GITEA_ADMIN_USERNAME" \
+                --password "$GITEA_ADMIN_PASSWORD" \
+                --email "$GITEA_ADMIN_EMAIL" \
+                --admin \
+                --must-change-password=false
+          env:
+            - name: GITEA_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-admin
+                  key: username
+            - name: GITEA_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-admin
+                  key: password
+            - name: GITEA_ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-admin
+                  key: email
+            - name: GITEA__database__DB_TYPE
+              value: postgres
+            - name: GITEA__database__SSL_MODE
+              value: require
+            - name: GITEA__database__HOST
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-db-pguser-postgres
+                  key: host
+            - name: GITEA__database__NAME
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-db-pguser-postgres
+                  key: dbname
+            - name: GITEA__database__USER
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-db-pguser-postgres
+                  key: user
+            - name: GITEA__database__PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-db-pguser-postgres
+                  key: password
+            - name: GITEA__security__INSTALL_LOCK
+              value: "true"
+            - name: HOME
+              value: /tmp/gitea/home
+            - name: GITEA_CUSTOM
+              value: /tmp/gitea/custom
+            - name: GITEA_APP_INI
+              value: /tmp/gitea/conf/app.ini
+            - name: GITEA_TEMP
+              value: /tmp/gitea/temp
+            - name: GITEA_WORK_DIR
+              value: /tmp/gitea

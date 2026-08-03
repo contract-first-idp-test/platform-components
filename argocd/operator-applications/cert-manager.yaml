@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: operator-cert-manager
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: '-20'
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform-operators
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager-operator
+  source:
+    repoURL: https://github.com/contract-first-idp/platform-components.git
+    targetRevision: main
+    path: operators/cert-manager
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - RespectIgnoreDifferences=true
+    - ApplyOutOfSyncOnly=true
+    - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 1m

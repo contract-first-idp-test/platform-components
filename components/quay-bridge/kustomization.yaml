@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - quay-integration.yaml
+configMapGenerator:
+  - name: platform-settings
+    envs: [../../config/platform.env]
+generatorOptions:
+  disableNameSuffixHash: true
+replacements:
+  - source: {kind: ConfigMap, name: platform-settings, fieldPath: data.QUAY_INTEGRATION_URL}
+    targets:
+      - select: {kind: QuayIntegration, name: quay}
+        fieldPaths: [spec.quayHostname]

@@ -1,0 +1,31 @@
+apiVersion: registry.apicur.io/v1
+kind: ApicurioRegistry3
+metadata:
+  name: apicurio-registry
+  namespace: apicurio
+  annotations:
+    argocd.argoproj.io/sync-wave: '0'
+spec:
+  app:
+    storage:
+      type: postgresql
+      sql:
+        dataSource:
+          url: jdbc:postgresql://apicurio-db-primary:5432/apicurio
+          username: apicurio
+          password:
+            name: apicurio-db-pguser-apicurio
+            key: password
+    ingress:
+      enabled: true
+      host: apicurio.apps.example.cluster.com
+      ingressClassName: openshift-default
+      annotations:
+        route.openshift.io/termination: edge
+  ui:
+    ingress:
+      enabled: true
+      host: apicurio-ui.apps.example.cluster.com
+      ingressClassName: openshift-default
+      annotations:
+        route.openshift.io/termination: edge

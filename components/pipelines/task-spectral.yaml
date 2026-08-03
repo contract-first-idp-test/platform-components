@@ -1,0 +1,18 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: spectral-quality-gate
+  namespace: tekton-tasks
+spec:
+  params:
+    - {name: RULES_PATH, type: string, default: ./ruleset.yaml}
+    - {name: API_PATH, type: string, default: ./specification.yaml}
+    - {name: IMAGE, type: string, default: stoplight/spectral:6.15.0}
+  workspaces:
+    - name: source
+  steps:
+    - name: spectral
+      image: $(params.IMAGE)
+      workingDir: $(workspaces.source.path)
+      command: [sh]
+      args: [-ec, 'spectral lint "$(params.API_PATH)" --ruleset "$(params.RULES_PATH)"']

@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: microcks
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: '5'
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform-services
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: microcks
+  sources:
+    - repoURL: https://microcks.io/helm
+      chart: microcks
+      targetRevision: 1.14.0
+      helm:
+        releaseName: microcks
+        valueFiles:
+          - $values/components/microcks/values.yaml
+          - $values/targets/workshop/helm/microcks.yaml
+    - repoURL: https://github.com/contract-first-idp/platform-components.git
+      targetRevision: main
+      path: components/microcks
+      ref: values
+  syncPolicy:
+    automated: {prune: true, selfHeal: true}
+    syncOptions:
+      - RespectIgnoreDifferences=true
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff: {duration: 10s, factor: 2, maxDuration: 1m}

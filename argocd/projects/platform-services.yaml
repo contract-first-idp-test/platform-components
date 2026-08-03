@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform-services
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: '-30'
+spec:
+  description: Shared platform-facing services
+  sourceRepos:
+  - https://github.com/contract-first-idp/platform-components.git
+  - https://microcks.io/helm
+  destinations:
+  - server: https://kubernetes.default.svc
+    namespace: keycloak
+  - server: https://kubernetes.default.svc
+    namespace: quay
+  - server: https://kubernetes.default.svc
+    namespace: apicurio
+  - server: https://kubernetes.default.svc
+    namespace: microcks
+  - server: https://kubernetes.default.svc
+    namespace: apicurio-designer
+  - server: https://kubernetes.default.svc
+    namespace: hawtio
+  - server: https://kubernetes.default.svc
+    namespace: tekton-tasks
+  - server: https://kubernetes.default.svc
+    namespace: openshift-devspaces
+  - server: https://kubernetes.default.svc
+    namespace: developer-hub
+  - server: https://kubernetes.default.svc
+    namespace: openshift-operators
+  - server: https://kubernetes.default.svc
+    namespace: openshift-gitops
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
