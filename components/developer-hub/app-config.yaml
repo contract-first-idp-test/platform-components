@@ -58,6 +58,9 @@ data:
       import:
         entityFilename: catalog-info.yaml
         pullRequestBranchName: backstage-integration
+      locations:
+        - type: url
+          target: ${SOFTWARE_TEMPLATES_CATALOG_URL}
       rules:
         - allow: [Component, System, Group, Resource, Location, Template, API, Domain]
       providers:
@@ -65,7 +68,7 @@ data:
           organization:
             organization: ${GITHUB_ORG}
             catalogPath: /catalog-info.yaml
-            filters: {branch: main, repository: '.*'}
+            filters: {branch: main, repository: '${GITHUB_CATALOG_REPOSITORY_FILTER}'}
             schedule:
               frequency: {minutes: 5}
               timeout: {minutes: 3}

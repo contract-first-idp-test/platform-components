@@ -10,6 +10,19 @@ across the workshop organization. Golden paths also immediately register their g
 descriptor for prompt task feedback and repositories outside the provider's organization scope.
 No duplicate explicit platform-target URL location is configured.
 
+## Software Templates catalog
+
+The public platform target declares the released Software Templates repository, revision, and root
+catalog path under `spec.platform.dependencies.softwareTemplates`. Developer Hub derives one
+revision-aware catalog URL from that declaration and explicitly loads the Software Templates root
+`Location`. 
+
+Adopters therefore do not need to fork `software-templates` into their own organization.
+
+To change the Software Templates release, update its dependency coordinates in
+`bootstrap/catalog-info.template.yaml` and the committed platform target. The workshop helper does
+not construct catalog URLs or inspect dependency repositories.
+
 ## User-managed configuration
 
 `catalog-info.yaml`

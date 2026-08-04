@@ -48,6 +48,32 @@ function sha256(file) {
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 }
 
+function softwareTemplatesCatalogUrl(dependency) {
+  const repositoryUrl = new URL(dependency.repositoryUrl);
+  const repositoryPath = repositoryUrl.pathname
+    .replace(/\/{2,}/g, '/')
+    .replace(/\/$/, '')
+    .replace(/\.git$/, '');
+  const catalogPath = dependency.catalogPath
+    .replace(/\/{2,}/g, '/')
+    .replace(/^\/+|\/+$/g, '');
+  return `${repositoryUrl.protocol}//${repositoryUrl.host}${repositoryPath}` +
+    `/blob/${dependency.revision}/${catalogPath}`;
+}
+
+function escapeRegularExpression(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function githubCatalogRepositoryFilter(platform, dependency) {
+  const isProviderOrganization =
+    platform.host.toLowerCase() === dependency.host.toLowerCase() &&
+    platform.organization.toLowerCase() === dependency.organization.toLowerCase();
+  return isProviderOrganization
+    ? `^(?!${escapeRegularExpression(dependency.repository)}$).*$`
+    : '.*';
+}
+
 describe('repository structure and public contracts', () => {
   test('all shell and static YAML files parse', () => {
     const files = walk(root);
@@ -128,13 +154,152 @@ describe('repository structure and public contracts', () => {
         },
       },
     });
+    expect(catalog.spec.platform.dependencies.softwareTemplates).toEqual({
+      host: 'github.com',
+      organization: 'contract-first-idp-test',
+      repository: 'software-templates',
+      repositoryUrl: 'https://github.com/contract-first-idp-test/software-templates.git',
+      revision: 'v1.0.0',
+      catalogPath: 'catalog-info.yaml',
+    });
+    expect(YAML.parse(read('bootstrap/catalog-info.template.yaml'))
+      .spec.platform.dependencies.softwareTemplates)
+      .toEqual(catalog.spec.platform.dependencies.softwareTemplates);
   });
 
-  test('keeps one broad root-catalog GitHub provider without URL locations', () => {
+  test('loads one revision-aware template catalog while retaining broad discovery', () => {
     const source = read('components/developer-hub/app-config.yaml');
+    const appConfig = YAML.parse(source.replace(
+      /\$\{([A-Z0-9_]+)\}/g, 'PLACEHOLDER_$1',
+    )).data['app-config-rhdh.yaml'];
+    const config = YAML.parse(appConfig);
     expect(source.match(/catalogPath: \/catalog-info\.yaml/g)).toHaveLength(1);
-    expect(source).not.toMatch(/^\s+locations:/m);
+    expect(config.catalog.locations).toEqual([{
+      type: 'url',
+      target: 'PLACEHOLDER_SOFTWARE_TEMPLATES_CATALOG_URL',
+    }]);
+    expect(config.catalog.providers.github.organization.filters).toEqual({
+      branch: 'main',
+      repository: 'PLACEHOLDER_GITHUB_CATALOG_REPOSITORY_FILTER',
+    });
     expect(source).not.toContain('PLATFORM_TARGET_CATALOG_URL');
+    for (const hardcoded of [
+      'contract-first-idp-test', 'software-templates', 'v1.0.0',
+      'github.com/contract-first-idp-test/software-templates',
+    ]) expect(source).not.toContain(hardcoded);
+  });
+});
+
+describe('Software Templates catalog configuration', () => {
+  const externalSecret = YAML.parse(read('components/developer-hub/external-secret.yaml'));
+  const templateData = externalSecret.spec.target.template.data;
+
+  test('derives catalog and provider values from the public platform configuration', () => {
+    const platformConfigSource = externalSecret.spec.data.find(
+      item => item.secretKey === 'platformConfig',
+    );
+    expect(platformConfigSource).toMatchObject({
+      sourceRef: {storeRef: {kind: 'ClusterSecretStore', name: 'cf-idp-config'}},
+      remoteRef: {key: 'platform-target-config', property: 'platform.yaml'},
+    });
+    expect(templateData).toHaveProperty('SOFTWARE_TEMPLATES_CATALOG_URL');
+    expect(templateData).toHaveProperty('GITHUB_CATALOG_REPOSITORY_FILTER');
+
+    const catalogTemplate = templateData.SOFTWARE_TEMPLATES_CATALOG_URL;
+    expect(catalogTemplate).toContain('spec.platform.dependencies.softwareTemplates');
+    for (const field of ['repositoryUrl', 'revision', 'catalogPath']) {
+      expect(catalogTemplate).toContain(`$dependency.${field}`);
+    }
+    expect(catalogTemplate).toContain('urlParse');
+    expect(catalogTemplate).toContain('regexReplaceAll');
+    expect(catalogTemplate).toContain('trimSuffix ".git"');
+    expect(catalogTemplate).toContain('/blob/');
+    for (const hardcoded of ['contract-first-idp-test', 'software-templates', 'v1.0.0']) {
+      expect(catalogTemplate).not.toContain(hardcoded);
+    }
+
+    const filterTemplate = templateData.GITHUB_CATALOG_REPOSITORY_FILTER;
+    for (const field of ['host', 'organization', 'repository']) {
+      expect(filterTemplate).toContain(`$dependency.${field}`);
+    }
+    expect(filterTemplate).toContain('regexQuoteMeta');
+    expect(filterTemplate).toContain('.*');
+  });
+
+  test.each([
+    [
+      'repository URL with .git',
+      {
+        repositoryUrl: 'https://github.com/example/software-templates.git',
+        revision: 'v2.3.4',
+        catalogPath: 'catalog-info.yaml',
+      },
+      'https://github.com/example/software-templates/blob/v2.3.4/catalog-info.yaml',
+    ],
+    [
+      'repository URL without .git and a leading catalog slash',
+      {
+        repositoryUrl: 'https://github.com/example/software-templates',
+        revision: 'release/next',
+        catalogPath: '/catalog-info.yaml',
+      },
+      'https://github.com/example/software-templates/blob/release/next/catalog-info.yaml',
+    ],
+    [
+      'nested catalog path and duplicate separators',
+      {
+        repositoryUrl: 'https://github.com//example//software-templates.git/',
+        revision: '0123456789abcdef',
+        catalogPath: '//catalog//templates//catalog-info.yaml',
+      },
+      'https://github.com/example/software-templates/blob/0123456789abcdef/catalog/templates/catalog-info.yaml',
+    ],
+  ])('normalizes %s', (_, dependency, expected) => {
+    expect(softwareTemplatesCatalogUrl(dependency)).toBe(expected);
+  });
+
+  test('excludes only an explicitly loaded repository in the provider organization', () => {
+    expect(githubCatalogRepositoryFilter({
+      host: 'github.com', organization: 'example',
+    }, {
+      host: 'github.com', organization: 'example', repository: 'software-templates',
+    })).toBe('^(?!software-templates$).*$');
+
+    const dependency = {
+      host: 'github.com',
+      organization: 'example',
+      repository: 'software.templates+',
+    };
+    const filter = githubCatalogRepositoryFilter({
+      host: 'github.com', organization: 'example',
+    }, dependency);
+    const repositoryPattern = new RegExp(filter);
+
+    expect(filter).toBe('^(?!software\\.templates\\+$).*$');
+    expect(repositoryPattern.test('software.templates+')).toBe(false);
+    for (const repository of [
+      'platform-components', 'payments-domain', 'storefront-system',
+      'reviews-api', 'reviews-component', 'reviews-db-resource',
+    ]) expect(repositoryPattern.test(repository)).toBe(true);
+  });
+
+  test('keeps broad provider discovery for an external template organization', () => {
+    const filter = githubCatalogRepositoryFilter({
+      host: 'github.com', organization: 'adopter',
+    }, {
+      host: 'github.com', organization: 'contract-first-idp', repository: 'software-templates',
+    });
+    expect(filter).toBe('.*');
+    expect(new RegExp(filter).test('any-generated-repository')).toBe(true);
+  });
+
+  test('keeps public catalog coordinates out of installer secrets and helper logic', () => {
+    expect(read('bootstrap/secrets.env.example')).not.toMatch(/SOFTWARE_TEMPLATES|CATALOG_URL/);
+    expect(exists('bootstrap/config.env')).toBe(false);
+    const helper = read('bootstrap/configure-workshop.sh');
+    for (const forbidden of [
+      'softwareTemplates', 'software-templates', 'SOFTWARE_TEMPLATES_CATALOG_URL',
+    ]) expect(helper).not.toContain(forbidden);
   });
 });
 

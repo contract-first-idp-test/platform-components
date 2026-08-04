@@ -33,6 +33,9 @@ spec:
       destinationServer: https://kubernetes.default.svc
     dependencies:
       softwareTemplates:
+        host: github.com
+        organization: contract-first-idp-test
+        repository: software-templates
         repositoryUrl: https://github.com/contract-first-idp-test/software-templates.git
         revision: v1.0.0
         catalogPath: catalog-info.yaml
