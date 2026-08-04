@@ -145,6 +145,37 @@ describe('repository structure and public contracts', () => {
       .toEqual(['platform-target-config']);
   });
 
+  test('uses native Quay programmatic bootstrap for the Bridge credential', () => {
+    const quay = read('components/quay/external-secret.yaml');
+    expect(quay).toContain('FEATURE_PROGRAMMATIC_BOOTSTRAP: true');
+    expect(quay).toContain('BOOTSTRAP_TOKEN_OWNER: {{ .username }}');
+    expect(quay).toContain('BOOTSTRAP_TOKEN_SCOPE:');
+    expect(exists('components/quay/bootstrap-job.yaml')).toBe(false);
+    expect(exists('components/quay/bootstrap-rbac.yaml')).toBe(false);
+
+    const bridge = [
+      ...parseDocuments(read('components/quay-bridge/bootstrap-token-secret.yaml')),
+      ...parseDocuments(read('components/quay-bridge/quay-integration.yaml')),
+    ];
+    const generatedToken = bridge.find(resource =>
+      resource.kind === 'ExternalSecret' && resource.metadata.name === 'quay-access-token');
+    expect(generatedToken.spec).toMatchObject({
+      secretStoreRef: {kind: 'SecretStore', name: 'quay-bootstrap-token'},
+      target: {name: 'quay-access-token', creationPolicy: 'Owner'},
+    });
+    expect(generatedToken.spec.data).toEqual([{
+      secretKey: 'bootstrapToken',
+      remoteRef: {key: 'registry-bootstrap-token', property: 'token.json'},
+    }]);
+    expect(generatedToken.spec.target.template.data.token)
+      .toContain('fromJson).access_token');
+
+    const integration = bridge.find(resource => resource.kind === 'QuayIntegration');
+    expect(integration.spec.credentialsSecret).toEqual({
+      name: 'quay-access-token', namespace: 'openshift-operators', key: 'token',
+    });
+  });
+
   test('preserves the root platform-target schema consumed by golden paths', () => {
     const catalog = YAML.parse(read('catalog-info.yaml'));
     expect(catalog).toMatchObject({
@@ -477,7 +508,7 @@ describe('workshop helper and credential boundary', () => {
     const credentialPattern = /gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN ([A-Z0-9 ]+)?PRIVATE KEY-----/;
     for (const relative of trackedFiles) {
       const file = path.join(root, relative);
-      if (!fs.statSync(file).isFile()) continue;
+      if (!fs.existsSync(file) || !fs.statSync(file).isFile()) continue;
       expect({file: relative, leaked: credentialPattern.test(fs.readFileSync(file))})
         .toEqual({file: relative, leaked: false});
     }

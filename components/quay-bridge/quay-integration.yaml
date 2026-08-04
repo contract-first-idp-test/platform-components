@@ -9,6 +9,7 @@ spec:
   credentialsSecret:
     name: quay-access-token
     namespace: openshift-operators
+    key: token
   insecureRegistry: false
   # Required CRD scalar; the ApplicationSet replaces this sentinel inline.
   quayHostname: https://replace-by-target.invalid
