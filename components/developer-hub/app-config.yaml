@@ -18,10 +18,12 @@ data:
         keys:
           - secret: ${BACKEND_SECRET}
       baseUrl: ${DEVELOPER_HUB_URL}
-      cors: {origin: ${DEVELOPER_HUB_URL}}
+      cors:
+        origin: ${DEVELOPER_HUB_URL}
     signInPage: oidc
     auth:
-      session: {secret: ${BACKEND_SECRET}}
+      session:
+        secret: ${BACKEND_SECRET}
       environment: production
       providers:
         oidc:
@@ -32,7 +34,8 @@ data:
             prompt: auto
     integrations:
       github:
-        - {host: ${GITHUB_HOST}, token: ${GITHUB_TOKEN}}
+        - host: ${GITHUB_HOST}
+          token: ${GITHUB_TOKEN}
     kubernetes:
       clusterLocatorMethods:
         - type: config
