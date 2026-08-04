@@ -28,9 +28,9 @@ data:
       providers:
         oidc:
           production:
-            clientId: backstage
+            clientId: ${KEYCLOAK_CLIENT_ID}
             clientSecret: ${KEYCLOAK_CLIENT_SECRET}
-            metadataUrl: ${KEYCLOAK_BASE_URL}/realms/cf-idp/.well-known/openid-configuration
+            metadataUrl: ${KEYCLOAK_BASE_URL}/realms/${KEYCLOAK_REALM}/.well-known/openid-configuration
             prompt: auto
     integrations:
       github:
@@ -68,7 +68,7 @@ data:
         - allow: [Component, System, Group, Resource, Location, Template, API, Domain]
       providers:
         github:
-          organization:
+          cf-idp:
             organization: ${GITHUB_ORG}
             catalogPath: /catalog-info.yaml
             filters: {branch: main, repository: '${GITHUB_CATALOG_REPOSITORY_FILTER}'}
@@ -79,9 +79,9 @@ data:
         keycloakOrg:
           production:
             baseUrl: ${KEYCLOAK_BASE_URL}
-            loginRealm: cf-idp
-            realm: cf-idp
-            clientId: backstage
+            loginRealm: ${KEYCLOAK_REALM}
+            realm: ${KEYCLOAK_REALM}
+            clientId: ${KEYCLOAK_CLIENT_ID}
             clientSecret: ${KEYCLOAK_CLIENT_SECRET}
             filters: {kind: [Group, User]}
             schedule:
