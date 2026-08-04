@@ -152,7 +152,7 @@ spec:
                   route.openshift.io/termination: edge
               keycloak:
                 url: cf-idp-keycloak-keycloak.{{ .spec.platform.cluster.routerDomain }}
-                privateUrl: https://cf-idp-keycloak.keycloak.svc:8443
+                privateUrl: https://cf-idp-keycloak-keycloak.{{ .spec.platform.cluster.routerDomain }}
                 realm: cf-idp
         - repoURL: '{{ .spec.platform.configuration.repositoryUrl }}'
           targetRevision: '{{ .spec.platform.configuration.revision }}'
