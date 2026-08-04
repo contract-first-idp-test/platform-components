@@ -5,29 +5,29 @@ metadata:
   title: Contract-First IDP Workshop Target
   description: Public repository and cluster contract for this platform target.
   annotations:
-    github.com/project-slug: contract-first-idp-test/platform-components
+    github.com/project-slug: "contract-first-idp-test/platform-components"
 spec:
-  owner: group:default/platform-engineering
+  owner: "group:default/backstage-admins"
   type: contract-first-idp-target
   platform:
     distribution:
       version: v1.0.0
     configuration:
-      host: github.com
-      organization: contract-first-idp-test
-      repository: platform-components
-      repositoryUrl: https://github.com/contract-first-idp-test/platform-components.git
-      revision: main
+      host: "github.com"
+      organization: "contract-first-idp-test"
+      repository: "platform-components"
+      repositoryUrl: "https://github.com/contract-first-idp-test/platform-components.git"
+      revision: "main"
       valuesPath: catalog-info.yaml
     tenantAdmission:
-      branch: main
+      branch: "main"
       path: tenants
     target:
       name: workshop
     cluster:
-      name: development-cluster
-      apiUrl: https://api.example.cluster.com:6443
-      routerDomain: apps.example.cluster.com
+      name: "cluster-whqrv-dzw6l"
+      apiUrl: "https://api.cluster-whqrv.dyn.redhatworkshops.io:6443"
+      routerDomain: "apps.cluster-whqrv.dyn.redhatworkshops.io"
     argocd:
       namespace: openshift-gitops
       destinationServer: https://kubernetes.default.svc
@@ -46,16 +46,16 @@ spec:
       repositoryUrl: https://github.com/contract-first-idp-test/developer-charts.git
       revision: v1.0.0
     schemaRegistry:
-      apiUrl: https://apicurio.apps.example.cluster.com/apis/registry/v3
-      uiUrl: https://apicurio-ui.apps.example.cluster.com
+      apiUrl: "https://apicurio.apps.cluster-whqrv.dyn.redhatworkshops.io/apis/registry/v3"
+      uiUrl: "https://apicurio-ui.apps.cluster-whqrv.dyn.redhatworkshops.io"
     spectralRules:
       repositoryUrl: https://github.com/contract-first-idp/spectral-rules.git
       revision: f2a1e6ab9f428eb822c232d8f460ff1e00199113
       path: ruleset.yaml
     registry:
       quay:
-        host: registry-quay-quay.apps.example.cluster.com
-        url: https://registry-quay-quay.apps.example.cluster.com
+        host: "registry-quay-quay.apps.cluster-whqrv.dyn.redhatworkshops.io"
+        url: "https://registry-quay-quay.apps.cluster-whqrv.dyn.redhatworkshops.io"
         clusterId: openshift
         credentials:
           sourcePullSecretName: default-quay-openshift
@@ -63,20 +63,20 @@ spec:
           runtimePullSecretName: default-quay-openshift
     services:
       developerHub:
-        url: https://backstage-backstage-developer-hub.apps.example.cluster.com
-        oidcCallbackUrl: https://backstage-backstage-developer-hub.apps.example.cluster.com/api/auth/oidc/handler/frame
+        url: "https://backstage-backstage-developer-hub.apps.cluster-whqrv.dyn.redhatworkshops.io"
+        oidcCallbackUrl: "https://backstage-backstage-developer-hub.apps.cluster-whqrv.dyn.redhatworkshops.io/api/auth/oidc/handler/frame"
       keycloak:
-        url: https://cf-idp-keycloak-keycloak.apps.example.cluster.com
+        url: "https://cf-idp-keycloak-keycloak.apps.cluster-whqrv.dyn.redhatworkshops.io"
         privateUrl: https://cf-idp-keycloak.keycloak.svc:8443
       microcks:
-        url: https://microcks.apps.example.cluster.com
-        redirectUri: https://microcks.apps.example.cluster.com/*
+        url: "https://microcks.apps.cluster-whqrv.dyn.redhatworkshops.io"
+        redirectUri: "https://microcks.apps.cluster-whqrv.dyn.redhatworkshops.io/*"
       hawtio:
-        host: hawtio.apps.example.cluster.com
+        host: "hawtio.apps.cluster-whqrv.dyn.redhatworkshops.io"
       gitea:
-        rootUrl: https://gitea-gitea.apps.example.cluster.com/
-        domain: gitea-gitea.apps.example.cluster.com
-        sshDomain: gitea-ssh.apps.example.cluster.com
+        rootUrl: "https://gitea-gitea.apps.cluster-whqrv.dyn.redhatworkshops.io/"
+        domain: "gitea-gitea.apps.cluster-whqrv.dyn.redhatworkshops.io"
+        sshDomain: "gitea-ssh.apps.cluster-whqrv.dyn.redhatworkshops.io"
     build:
       sourceRevision: main
       sccClusterRoleName: system:openshift:scc:pipelines-scc
