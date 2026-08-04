@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: tenant-test-admission
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  description: Parent Domain attachment for test.
+  sourceRepos:
+    - https://github.com/contract-first-idp-test/developer-charts.git
+    - https://github.com/contract-first-idp-test/test-domain.git
+    - https://github.com/contract-first-idp-test/platform-components.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: openshift-gitops
+  namespaceResourceWhitelist:
+    - {group: argoproj.io, kind: AppProject}
+    - {group: argoproj.io, kind: ApplicationSet}

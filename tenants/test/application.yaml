@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: test-domain
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: tenant-test-admission
+  sources:
+    - repoURL: https://github.com/contract-first-idp-test/developer-charts.git
+      targetRevision: v1.0.0
+      path: charts/domain/system-discovery
+      helm:
+        valueFiles:
+          - $platform/catalog-info.yaml
+          - $domain/catalog-info.yaml
+    - repoURL: https://github.com/contract-first-idp-test/test-domain.git
+      targetRevision: main
+      ref: domain
+    - repoURL: https://github.com/contract-first-idp-test/platform-components.git
+      targetRevision: main
+      ref: platform
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-gitops
+  syncPolicy:
+    automated: {prune: true, selfHeal: true}
