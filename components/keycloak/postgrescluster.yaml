@@ -11,22 +11,14 @@ spec:
     - name: postgres
       replicas: 1
       dataVolumeClaimSpec:
-        accessModes: [ReadWriteOnce]
+        accessModes:
+          - ReadWriteOnce
         resources:
           requests:
             storage: 10Gi
-  backups:
-    pgbackrest:
-      repos:
-        - name: repo1
-          volume:
-            volumeClaimSpec:
-              accessModes: [ReadWriteOnce]
-              resources:
-                requests:
-                  storage: 10Gi
   users:
-    - name: keycloak
-      databases: [keycloak]
+    - name: postgres
+      databases:
+        - keycloak
       password:
         type: AlphaNumeric

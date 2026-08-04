@@ -13,10 +13,10 @@ spec:
     port: 5432
     database: keycloak
     usernameSecret:
-      name: cf-idp-keycloak-db-pguser-keycloak
+      name: cf-idp-keycloak-db-pguser-postgres
       key: user
     passwordSecret:
-      name: cf-idp-keycloak-db-pguser-keycloak
+      name: cf-idp-keycloak-db-pguser-postgres
       key: password
   http:
     tlsSecret: cf-idp-keycloak-tls
