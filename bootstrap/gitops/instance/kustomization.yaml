@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - argocd-kustomize-options.yaml
   - gitops-admins-group.yaml
+  - application-controller-cluster-admin.yaml

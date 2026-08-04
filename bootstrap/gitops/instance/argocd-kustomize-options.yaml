@@ -4,6 +4,10 @@ metadata:
   name: openshift-gitops
   namespace: openshift-gitops
 spec:
+  rbac:
+    policy: |
+      g, gitops-admins, role:admin
+    scopes: '[groups]'
   applicationSet:
     extraCommandArgs:
       - --enable-policy-override
