@@ -1,4 +1,6 @@
 bootstrap/secrets.env
-node_modules/
+/test/node_modules/
+/test/coverage/
+/test/.cache/
 *.rendered.yaml
 .DS_Store

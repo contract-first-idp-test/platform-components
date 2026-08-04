@@ -2,8 +2,8 @@ const {execFileSync} = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const YAML = require('yaml');
+const {repositoryRoot: root} = require('./helpers/paths');
 
-const root = path.resolve(__dirname, '..');
 const clusterScopedKinds = new Set([
   'Namespace', 'ClusterRole', 'ClusterRoleBinding',
   'ClusterSecretStore', 'ExternalSecretsConfig',

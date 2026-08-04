@@ -20,11 +20,22 @@ provider scope.
 Reusable implementation charts are consumed from the coordinated
 `charts/<entity>/<responsibility>` convention in `developer-charts`.
 
-Deterministic development and CI use Jest under the singular `test/` directory:
+All Node and Jest tooling is scoped under `test/`; this repository is not an npm package. Run the
+repository-local deterministic suite with:
 
 ```bash
-npm ci
-npm test
+make test
 ```
 
-`make check` remains a convenience alias for `npm test`.
+The direct equivalent is:
+
+```bash
+npm ci --prefix test
+npm test --prefix test
+```
+
+`make check` remains a convenience alias for `make test`. Node and Jest are contributor and CI
+tools only; workshop installation does not require them.
+
+Installers normally fork only this repository and consume released dependencies. The three-sibling
+workspace is only for contributors performing coordinated current-source compatibility checks.

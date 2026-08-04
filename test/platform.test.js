@@ -4,8 +4,8 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const YAML = require('yaml');
+const {repositoryRoot: root} = require('./helpers/paths');
 
-const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const exists = relative => fs.existsSync(path.join(root, relative));
 
@@ -67,14 +67,19 @@ describe('repository structure and public contracts', () => {
       'argocd', 'profiles', 'targets', 'tests', 'scripts', 'configuration',
       path.join('config', 'distribution.env'), 'bootstrap/source.env', 'requirements-dev.txt',
       path.join('bootstrap', 'config.env'),
+      'package.json', 'package-lock.json', 'jest.config.js', 'node_modules',
     ]) expect(exists(obsolete)).toBe(false);
     for (const required of [
       'catalog-info.yaml', 'bootstrap/catalog-info.template.yaml',
       'bootstrap/secrets.env.example',
       'bootstrap/root/platform-applicationset.yaml', 'test/platform.test.js',
-      'tenants/README.md',
+      'tenants/README.md', 'test/package.json', 'test/package-lock.json',
+      'test/jest.config.js', 'test/helpers/paths.js',
     ]) expect({required, present: exists(required)}).toEqual({required, present: true});
     expect(exists('tenants/kustomization.yaml')).toBe(false);
+    expect(YAML.parse(read('test/package.json'))).toMatchObject({
+      name: 'platform-components-tests', private: true,
+    });
   });
 
   test('keeps stable Keycloak identifiers directly in consuming manifests', () => {

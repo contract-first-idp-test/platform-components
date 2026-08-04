@@ -1,10 +1,18 @@
 SHELL := /usr/bin/env bash
-.PHONY: check validate render render-gitops-operator render-gitops-instance
+.PHONY: test test-install test-clean check validate render render-gitops-operator render-gitops-instance
 
-check:
-	npm test
+test: test-install
+	npm test --prefix test
 
-validate: check
+test-install:
+	npm ci --prefix test
+
+test-clean:
+	rm -rf test/node_modules
+
+check: test
+
+validate: test
 
 render:
 	oc kustomize bootstrap/root --load-restrictor=LoadRestrictionsNone
