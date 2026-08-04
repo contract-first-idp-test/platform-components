@@ -83,4 +83,3 @@ is an alias for `make test`.
 - [Component inventory](docs/component-inventory.md)
 - [Operations](docs/operations.md)
 - [Workshop target contract](docs/workshop-target.md)
-- [Provenance and dependency pins](docs/provenance.md)
