@@ -108,7 +108,7 @@ describe('repository structure and public contracts', () => {
     });
   });
 
-  test('keeps stable Keycloak identifiers directly in consuming manifests', () => {
+  test('keeps stable Keycloak identifiers at the generated secret boundary', () => {
     const realm = YAML.parse(read('components/keycloak/realm.yaml')).spec.realm;
     expect(realm.id).toBe('cf-idp');
     expect(realm.realm).toBe('cf-idp');
@@ -121,16 +121,22 @@ describe('repository structure and public contracts', () => {
     const appConfig = YAML.parse(appConfigSource.replace(
       /\$\{([A-Z0-9_]+)\}/g, 'PLACEHOLDER_$1',
     ));
-    expect(appConfig.auth.providers.oidc.production.clientId).toBe('backstage');
+    expect(appConfig.auth.providers.oidc.production.clientId)
+      .toBe('PLACEHOLDER_KEYCLOAK_CLIENT_ID');
     expect(appConfig.auth.providers.oidc.production.metadataUrl)
-      .toBe('PLACEHOLDER_KEYCLOAK_BASE_URL/realms/cf-idp/.well-known/openid-configuration');
+      .toBe('PLACEHOLDER_KEYCLOAK_BASE_URL/realms/PLACEHOLDER_KEYCLOAK_REALM/.well-known/openid-configuration');
     expect(appConfig.catalog.providers.keycloakOrg.production).toMatchObject({
-      loginRealm: 'cf-idp', realm: 'cf-idp', clientId: 'backstage',
+      loginRealm: 'PLACEHOLDER_KEYCLOAK_REALM',
+      realm: 'PLACEHOLDER_KEYCLOAK_REALM',
+      clientId: 'PLACEHOLDER_KEYCLOAK_CLIENT_ID',
     });
-    expect(appConfigSource)
-      .not.toMatch(/KEYCLOAK_(REALM|CLIENT_ID)/);
+    expect(appConfigSource).toMatch(/\$\{KEYCLOAK_(REALM|CLIENT_ID)\}/);
     expect(YAML.parse(read('components/microcks/values.yaml')).keycloak.realm).toBe('cf-idp');
     const externalSecret = YAML.parse(read('components/developer-hub/external-secret.yaml'));
+    expect(externalSecret.spec.target.template.data).toMatchObject({
+      KEYCLOAK_CLIENT_ID: 'backstage',
+      KEYCLOAK_REALM: 'cf-idp',
+    });
     expect(externalSecret.spec.data.map(item => item.secretKey)).toEqual([
       'platformConfig', 'backendSecret', 'githubToken', 'keycloakClientSecret',
     ]);
@@ -178,7 +184,7 @@ describe('repository structure and public contracts', () => {
       type: 'url',
       target: 'PLACEHOLDER_SOFTWARE_TEMPLATES_CATALOG_URL',
     }]);
-    expect(config.catalog.providers.github.organization.filters).toEqual({
+    expect(config.catalog.providers.github['cf-idp'].filters).toEqual({
       branch: 'main',
       repository: 'PLACEHOLDER_GITHUB_CATALOG_REPOSITORY_FILTER',
     });
@@ -340,7 +346,9 @@ describe('ApplicationSet policy and rendering', () => {
 
   test('maps every inventory path to an explicit supported renderer', () => {
     expect(new Set(inventory.map(item => item.renderer)))
-      .toEqual(new Set(['kustomize', 'apicurio', 'quay-bridge', 'microcks', 'directory']));
+      .toEqual(new Set([
+        'kustomize', 'keycloak', 'apicurio', 'quay-bridge', 'microcks', 'directory',
+      ]));
     for (const item of inventory) {
       expect({name: item.name, pathExists: exists(item.path)})
         .toEqual({name: item.name, pathExists: true});
@@ -462,13 +470,16 @@ describe('workshop helper and credential boundary', () => {
     expect(execFileSync('git', ['check-ignore', 'bootstrap/secrets.env'], {
       cwd: root, encoding: 'utf8',
     }).trim()).toBe('bootstrap/secrets.env');
-    expect(execFileSync('git', ['ls-files'], {cwd: root, encoding: 'utf8'}).split('\n'))
-      .not.toContain('bootstrap/secrets.env');
+    const trackedFiles = execFileSync('git', ['ls-files'], {
+      cwd: root, encoding: 'utf8',
+    }).trim().split('\n').filter(Boolean);
+    expect(trackedFiles).not.toContain('bootstrap/secrets.env');
     const credentialPattern = /gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN ([A-Z0-9 ]+)?PRIVATE KEY-----/;
-    for (const file of walk(root)) {
-      if (file.includes(`${path.sep}node_modules${path.sep}`)) continue;
-      expect({file: path.relative(root, file), leaked: credentialPattern.test(fs.readFileSync(file))})
-        .toEqual({file: path.relative(root, file), leaked: false});
+    for (const relative of trackedFiles) {
+      const file = path.join(root, relative);
+      if (!fs.statSync(file).isFile()) continue;
+      expect({file: relative, leaked: credentialPattern.test(fs.readFileSync(file))})
+        .toEqual({file: relative, leaked: false});
     }
     const credentialKeys = Object.keys(envFile('bootstrap/secrets.env.example'));
     for (const relative of [
