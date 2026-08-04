@@ -138,6 +138,8 @@ spec:
           targetRevision: 1.14.0
           helm:
             releaseName: microcks
+            apiVersions:
+              - route.openshift.io/v1/Route
             valueFiles:
               - $values/components/microcks/values.yaml
             values: |
