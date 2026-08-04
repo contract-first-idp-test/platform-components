@@ -33,8 +33,7 @@ spec:
                 - {name: operator-hawtio, project: platform-operators, namespace: openshift-operators, path: operators/hawtio, renderer: kustomize, createNamespace: 'true', skipDryRun: 'false'}
 
                 # Identity. Keycloak depends on the target infrastructure's existing RHBK operator.
-                - {name: keycloak, project: platform-services, namespace: keycloak, path: components/keycloak, renderer: kustomize, createNamespace: 'true', skipDryRun: 'true'}
-
+                - {name: keycloak, project: platform-services, namespace: keycloak, path: components/keycloak, renderer: keycloak, createNamespace: 'true', skipDryRun: 'true'}
                 # Registry and delivery. Quay Bridge depends on Quay and both corresponding operators.
                 - {name: quay, project: platform-services, namespace: quay, path: components/quay, renderer: kustomize, createNamespace: 'true', skipDryRun: 'true'}
                 - {name: quay-bridge, project: platform-services, namespace: openshift-operators, path: components/quay-bridge, renderer: quay-bridge, createNamespace: 'true', skipDryRun: 'true'}
@@ -79,7 +78,30 @@ spec:
             maxDuration: 2m
   templatePatch: |
     spec:
-      {{- if eq .renderer "apicurio" }}
+      {{- if eq .renderer "keycloak" }}
+      source:
+        kustomize:
+          patches:
+            - target:
+                group: k8s.keycloak.org
+                version: v2alpha1
+                kind: Keycloak
+                name: cf-idp-keycloak
+              patch: |-
+                - op: add
+                  path: /spec/hostname
+                  value:
+                    hostname: {{ trimPrefix "https://" .spec.platform.services.keycloak.url | quote }}
+            - target:
+                group: route.openshift.io
+                version: v1
+                kind: Route
+                name: cf-idp-keycloak
+              patch: |-
+                - op: add
+                  path: /spec/host
+                  value: {{ trimPrefix "https://" .spec.platform.services.keycloak.url | quote }}
+      {{- else if eq .renderer "apicurio" }}
       source:
         kustomize:
           patches:
