@@ -1,27 +1,66 @@
 # Contract-First IDP Platform Components
 
-A workshop-oriented GitOps distribution of the shared services used by the Contract-First IDP on
-OpenShift.
+Set up a workshop-ready Internal Developer Platform on OpenShift with one GitOps repository.
 
-The supported installation has three focused configuration surfaces:
+This is the place to start if you are installing Contract-First IDP. Fork this repository, choose
+the platform components you want, provide the workshop credentials, and let OpenShift GitOps
+reconcile the installation.
 
-- `catalog-info.yaml` — generated and committed public platform-target contract;
-- `bootstrap/root/platform-applicationset.yaml` — committed operator and component selection;
-- `bootstrap/secrets.env` — ignored local credential values.
+## Start here
 
-See [bootstrap/README.md](bootstrap/README.md) for the complete workshop installation sequence.
+- **Installing the workshop:** follow the [workshop installation](bootstrap/README.md).
+- **Reviewing the platform:** see the [component inventory](docs/component-inventory.md) and
+  [architecture](docs/architecture.md).
+- **Running the platform:** use the [operations guide](docs/operations.md).
+- **Contributing a change:** start with [validation](docs/validation.md).
 
-Every repository managed by the Contract-First IDP golden paths stores its primary entity
-descriptor at `/catalog-info.yaml`. Developer Hub discovers those root descriptors through one
-GitHub catalog provider rule for the configured organization. Golden paths also immediately
-register their generated root descriptor for prompt task feedback and repositories outside that
-provider scope.
+Installers normally need only this repository. The released `software-templates` and
+`developer-charts` dependencies are consumed for you; sibling checkouts are needed only by
+contributors testing coordinated source changes.
 
-Reusable implementation charts are consumed from the coordinated
-`charts/<entity>/<responsibility>` convention in `developer-charts`.
+## The installation in five steps
 
-All Node and Jest tooling is scoped under `test/`; this repository is not an npm package. Run the
-repository-local deterministic suite with:
+The [complete workshop guide](bootstrap/README.md) includes prerequisites, review points, and
+verification commands. The happy path is:
+
+1. Fork and clone this repository.
+2. Log in to OpenShift as a cluster administrator.
+3. Run `bootstrap/configure-workshop.sh` to generate the public platform target.
+4. Review and commit the selected platform Applications.
+5. Create the local credentials Secret and apply the root bootstrap Kustomization.
+
+The repository keeps configuration intentionally small and visible:
+
+| File | What you manage |
+| --- | --- |
+| [`catalog-info.yaml`](catalog-info.yaml) | The generated public platform-target contract used by Backstage and the golden paths |
+| [`bootstrap/root/platform-applicationset.yaml`](bootstrap/root/platform-applicationset.yaml) | The operators and shared services selected for this target |
+| `bootstrap/secrets.env` | Ignored local credentials used to create the platform Secret |
+
+There are no hidden profiles or generated target directories. The committed ApplicationSet is the
+inventory that Argo CD creates and keeps reconciled.
+
+## What this repository provides
+
+The default workshop inventory includes the platform services behind the developer experience:
+OpenShift GitOps, Pipelines, Developer Hub, Dev Spaces, Quay, Schema Registry, identity, secrets,
+and supported Resource operators. See the [component inventory](docs/component-inventory.md) for
+the exact channels and versions.
+
+Once installed:
+
+- Developer Hub discovers repository-root `catalog-info.yaml` descriptors;
+- golden paths create reviewable repositories and pull requests instead of writing to the cluster;
+- Argo CD combines tenant intent with released charts and reconciles OpenShift resources;
+- platform credentials remain in the cluster, outside public catalog contracts.
+
+Reusable implementation charts follow the `charts/<entity>/<responsibility>` convention in
+`developer-charts`. Every repository created by a golden path keeps its primary Backstage entity at
+`/catalog-info.yaml`, making discovery and ownership predictable.
+
+## Contributing
+
+The deterministic test suite requires Node.js and npm, but workshop installation does not:
 
 ```bash
 make test
@@ -34,8 +73,14 @@ npm ci --prefix test
 npm test --prefix test
 ```
 
-`make check` remains a convenience alias for `make test`. Node and Jest are contributor and CI
-tools only; workshop installation does not require them.
+All test tooling lives under `test/`; this repository itself is not an npm package. `make check`
+is an alias for `make test`.
 
-Installers normally fork only this repository and consume released dependencies. The three-sibling
-workspace is only for contributors performing coordinated current-source compatibility checks.
+## More documentation
+
+- [Workshop installation](bootstrap/README.md)
+- [Architecture](docs/architecture.md)
+- [Component inventory](docs/component-inventory.md)
+- [Operations](docs/operations.md)
+- [Workshop target contract](docs/workshop-target.md)
+- [Provenance and dependency pins](docs/provenance.md)
