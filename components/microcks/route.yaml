@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: microcks
+  namespace: microcks
+spec:
+  host: microcks.example.invalid
+  to:
+    kind: Service
+    name: microcks
+    weight: 100
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

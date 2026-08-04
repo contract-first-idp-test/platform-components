@@ -158,6 +158,17 @@ spec:
           targetRevision: '{{ .spec.platform.configuration.revision }}'
           path: components/microcks
           ref: values
+          kustomize:
+            patches:
+              - target:
+                  group: route.openshift.io
+                  version: v1
+                  kind: Route
+                  name: microcks
+                patch: |-
+                  - op: replace
+                    path: /spec/host
+                    value: {{ printf "microcks.%s" .spec.platform.cluster.routerDomain | quote }}
       {{- else if eq .renderer "directory" }}
       source:
         directory:
