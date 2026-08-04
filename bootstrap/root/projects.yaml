@@ -1,0 +1,75 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform-infrastructure
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: '-30'
+spec:
+  description: Bootstrap secrets and shared platform infrastructure
+  sourceRepos:
+    - REPLACED_BY_ROOT_KUSTOMIZATION
+  destinations:
+    - {server: https://kubernetes.default.svc, namespace: cf-idp-secrets}
+  clusterResourceWhitelist:
+    - {group: '', kind: Namespace}
+    - {group: rbac.authorization.k8s.io, kind: ClusterRole}
+    - {group: rbac.authorization.k8s.io, kind: ClusterRoleBinding}
+    - {group: external-secrets.io, kind: ClusterSecretStore}
+    - {group: operator.openshift.io, kind: ExternalSecretsConfig}
+  namespaceResourceWhitelist:
+    - {group: '*', kind: '*'}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform-operators
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: '-30'
+spec:
+  description: Cluster operators managed through OLM
+  sourceRepos:
+    - REPLACED_BY_ROOT_KUSTOMIZATION
+  destinations:
+    - {server: https://kubernetes.default.svc, namespace: openshift-operators}
+    - {server: https://kubernetes.default.svc, namespace: openshift-gitops-operator}
+    - {server: https://kubernetes.default.svc, namespace: external-secrets-operator}
+    - {server: https://kubernetes.default.svc, namespace: cert-manager-operator}
+    - {server: https://kubernetes.default.svc, namespace: keycloak}
+    - {server: https://kubernetes.default.svc, namespace: apicurio-designer}
+  clusterResourceWhitelist:
+    - {group: '', kind: Namespace}
+  namespaceResourceWhitelist:
+    - {group: operators.coreos.com, kind: Subscription}
+    - {group: operators.coreos.com, kind: OperatorGroup}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform-services
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: '-30'
+spec:
+  description: Shared platform-facing services
+  sourceRepos:
+    - REPLACED_BY_ROOT_KUSTOMIZATION
+    - https://microcks.io/helm
+  destinations:
+    - {server: https://kubernetes.default.svc, namespace: keycloak}
+    - {server: https://kubernetes.default.svc, namespace: quay}
+    - {server: https://kubernetes.default.svc, namespace: apicurio}
+    - {server: https://kubernetes.default.svc, namespace: microcks}
+    - {server: https://kubernetes.default.svc, namespace: apicurio-designer}
+    - {server: https://kubernetes.default.svc, namespace: hawtio}
+    - {server: https://kubernetes.default.svc, namespace: tekton-tasks}
+    - {server: https://kubernetes.default.svc, namespace: openshift-devspaces}
+    - {server: https://kubernetes.default.svc, namespace: developer-hub}
+    - {server: https://kubernetes.default.svc, namespace: openshift-operators}
+    - {server: https://kubernetes.default.svc, namespace: openshift-gitops}
+    - {server: https://kubernetes.default.svc, namespace: openshift-pipelines-resolvers}
+  clusterResourceWhitelist:
+    - {group: '*', kind: '*'}
+  namespaceResourceWhitelist:
+    - {group: '*', kind: '*'}

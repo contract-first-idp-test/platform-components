@@ -1,0 +1,79 @@
+name: Coordinated repository contracts
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 6 * * 1'
+  push:
+    branches: [main]
+    paths:
+      - catalog-info.yaml
+      - bootstrap/catalog-info.template.yaml
+      - bootstrap/root/**
+      - package.json
+      - package-lock.json
+      - .github/workflows/coordinated-contracts.yaml
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: platform-components
+      - uses: actions/checkout@v4
+        with:
+          repository: contract-first-idp-test/software-templates
+          ref: v1.0.0
+          path: software-templates
+      - uses: actions/checkout@v4
+        with:
+          repository: contract-first-idp-test/developer-charts
+          ref: v1.0.0
+          path: developer-charts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            platform-components/package-lock.json
+            software-templates/package-lock.json
+            developer-charts/package-lock.json
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.17.3
+      - uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: '4.21'
+      - run: npm ci
+        working-directory: platform-components
+      - run: npm test
+        working-directory: platform-components
+      - run: npm ci
+        working-directory: developer-charts
+      - run: npm test
+        working-directory: developer-charts
+      - run: npm ci
+        working-directory: software-templates
+      - run: npm test
+        working-directory: software-templates
+      - run: npm run test:remote-revision
+        working-directory: software-templates
+      - run: npm run test:smoke
+        working-directory: software-templates
+        env:
+          BACKSTAGE_URL: ${{ vars.SMOKE_BACKSTAGE_URL }}
+          BACKSTAGE_TOKEN: ${{ secrets.SMOKE_BACKSTAGE_TOKEN }}
+          TEST_DOMAIN_REF: ${{ vars.SMOKE_TEST_DOMAIN_REF }}
+          TEST_SYSTEM_REF: ${{ vars.SMOKE_TEST_SYSTEM_REF }}
+          TEST_COMPONENT_REF: ${{ vars.SMOKE_TEST_COMPONENT_REF }}
+      - run: git diff --check
+        working-directory: platform-components
+      - run: git diff --check
+        working-directory: developer-charts
+      - run: git diff --check
+        working-directory: software-templates

@@ -1,5 +1,4 @@
 bootstrap/secrets.env
+node_modules/
 *.rendered.yaml
 .DS_Store
-__pycache__/
-*.pyc

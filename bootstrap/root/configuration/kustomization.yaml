@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: cf-idp-secrets
+secretGenerator:
+  - name: platform-target-config
+    files:
+      - platform.yaml=../../../catalog-info.yaml
+generatorOptions:
+  disableNameSuffixHash: true

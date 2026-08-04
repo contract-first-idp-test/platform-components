@@ -5,4 +5,3 @@ resources:
   - external-secret.yaml
   # Workloads are rendered by the official Microcks chart. This source only
   # owns companion resources that the chart consumes.
-  

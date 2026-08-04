@@ -1,14 +1,16 @@
 SHELL := /usr/bin/env bash
-.PHONY: validate render render-full render-minimal
+.PHONY: check validate render render-gitops-operator render-gitops-instance
 
-validate:
-	python3 scripts/validate.py
+check:
+	npm test
+
+validate: check
 
 render:
-	oc kustomize profiles/workshop --load-restrictor=LoadRestrictionsNone
+	oc kustomize bootstrap/root --load-restrictor=LoadRestrictionsNone
 
-render-full:
-	oc kustomize profiles/full --load-restrictor=LoadRestrictionsNone
+render-gitops-operator:
+	oc kustomize bootstrap/gitops/operator --load-restrictor=LoadRestrictionsNone
 
-render-minimal:
-	oc kustomize profiles/minimal --load-restrictor=LoadRestrictionsNone
+render-gitops-instance:
+	oc kustomize bootstrap/gitops/instance --load-restrictor=LoadRestrictionsNone

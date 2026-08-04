@@ -1,18 +1,3 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources: [namespace.yaml, db-init.yaml, postgres.yaml, apicurio-registry.yaml]
-configMapGenerator:
-  - name: platform-settings
-    envs: [../../config/platform.env]
-generatorOptions: {disableNameSuffixHash: true}
-replacements:
-  # Apicurio's operator API requires literal scalar ingress hosts. These two
-  # bootstrap values are validated against the target runtime document.
-  - source: {kind: ConfigMap, name: platform-settings, fieldPath: data.APICURIO_APP_HOST}
-    targets:
-      - select: {kind: ApicurioRegistry3, name: apicurio-registry}
-        fieldPaths: [spec.app.ingress.host]
-  - source: {kind: ConfigMap, name: platform-settings, fieldPath: data.APICURIO_UI_HOST}
-    targets:
-      - select: {kind: ApicurioRegistry3, name: apicurio-registry}
-        fieldPaths: [spec.ui.ingress.host]

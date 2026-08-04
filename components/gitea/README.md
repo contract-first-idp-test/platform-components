@@ -1,20 +1,6 @@
-# Gitea component
+# Optional Gitea component
 
-Gitea is a normal platform component that is intentionally absent from every supplied profile.
-Select its Argo CD Application from a user-created profile or overlay by adding this resource:
-
-```yaml
-resources:
-  - ../../argocd/applications/gitea.yaml
-```
-
-Then render or apply that profile normally:
-
-```bash
-oc apply -k profiles/my-profile
-```
-
-This installs the SCM service only. To make Gitea the Developer Hub provider, add the maintained
-Gitea and GitHub-compatibility dynamic plugins and switch the matching software-template branch.
-Those plugin packages are not embedded because their package location and integrity are release
-artifacts rather than cluster configuration.
+Gitea is reusable but is not selected by the default workshop inventory. To install it before
+initial activation, add one ordinary Kustomize entry for `components/gitea` to
+`bootstrap/root/platform-applicationset.yaml` and review the reserved Gitea values in
+`bootstrap/secrets.env`.

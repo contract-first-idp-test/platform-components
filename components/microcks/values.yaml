@@ -1,5 +1,5 @@
-# Portable defaults for the official Microcks chart. Target-specific endpoints
-# belong in targets/<target>/helm/microcks.yaml.
+# Portable defaults for the official Microcks chart. The ApplicationSet supplies
+# target-specific endpoints as inline values.
 appName: microcks
 ingresses: true
 gatewayRoutes: false

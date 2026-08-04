@@ -1,4 +1,4 @@
-name: Validate manifests
+name: Deterministic tests
 
 on:
   pull_request:
@@ -9,12 +9,18 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-node@v4
         with:
-          python-version: '3.12'
-      - run: python -m pip install --disable-pip-version-check PyYAML==6.0.2
-      - run: make validate
+          node-version: 20
+          cache: npm
+      - uses: redhat-actions/openshift-tools-installer@v1
+        with:
+          oc: '4.21'
+      - run: npm ci
+      - run: npm test
+      - run: git diff --check

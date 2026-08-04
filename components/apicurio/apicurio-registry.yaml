@@ -18,14 +18,16 @@ spec:
             key: password
     ingress:
       enabled: true
-      host: apicurio.apps.example.cluster.com
+      # Required CRD scalar; the ApplicationSet replaces this sentinel inline.
+      host: replace-by-target.invalid
       ingressClassName: openshift-default
       annotations:
         route.openshift.io/termination: edge
   ui:
     ingress:
       enabled: true
-      host: apicurio-ui.apps.example.cluster.com
+      # Required CRD scalar; the ApplicationSet replaces this sentinel inline.
+      host: replace-by-target.invalid
       ingressClassName: openshift-default
       annotations:
         route.openshift.io/termination: edge

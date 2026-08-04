@@ -1,0 +1,81 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: workshop
+  title: Contract-First IDP Workshop Target
+  description: Public repository and cluster contract for this platform target.
+  annotations:
+    github.com/project-slug: "@@SCM_ORGANIZATION@@/@@SCM_REPOSITORY@@"
+spec:
+  owner: "@@OWNER@@"
+  type: contract-first-idp-target
+  platform:
+    distribution:
+      version: v1.0.0
+    configuration:
+      host: "@@SCM_HOST@@"
+      organization: "@@SCM_ORGANIZATION@@"
+      repository: "@@SCM_REPOSITORY@@"
+      repositoryUrl: "@@PLATFORM_REPO_URL@@"
+      revision: "@@PLATFORM_REVISION@@"
+      valuesPath: catalog-info.yaml
+    tenantAdmission:
+      branch: "@@PLATFORM_REVISION@@"
+      path: tenants
+    target:
+      name: workshop
+    cluster:
+      name: "@@CLUSTER_NAME@@"
+      apiUrl: "@@CLUSTER_API_URL@@"
+      routerDomain: "@@ROUTER_DOMAIN@@"
+    argocd:
+      namespace: openshift-gitops
+      destinationServer: https://kubernetes.default.svc
+    dependencies:
+      softwareTemplates:
+        repositoryUrl: https://github.com/contract-first-idp-test/software-templates.git
+        revision: v1.0.0
+        catalogPath: catalog-info.yaml
+      developerCharts:
+        repositoryUrl: https://github.com/contract-first-idp-test/developer-charts.git
+        revision: v1.0.0
+    charts:
+      repositoryUrl: https://github.com/contract-first-idp-test/developer-charts.git
+      revision: v1.0.0
+    schemaRegistry:
+      apiUrl: "https://apicurio.@@ROUTER_DOMAIN@@/apis/registry/v3"
+      uiUrl: "https://apicurio-ui.@@ROUTER_DOMAIN@@"
+    spectralRules:
+      repositoryUrl: https://github.com/contract-first-idp/spectral-rules.git
+      revision: f2a1e6ab9f428eb822c232d8f460ff1e00199113
+      path: ruleset.yaml
+    registry:
+      quay:
+        host: "registry-quay-quay.@@ROUTER_DOMAIN@@"
+        url: "https://registry-quay-quay.@@ROUTER_DOMAIN@@"
+        clusterId: openshift
+        credentials:
+          sourcePullSecretName: default-quay-openshift
+          destinationPushSecretName: builder-quay-openshift
+          runtimePullSecretName: default-quay-openshift
+    services:
+      developerHub:
+        url: "https://backstage-backstage-developer-hub.@@ROUTER_DOMAIN@@"
+        oidcCallbackUrl: "https://backstage-backstage-developer-hub.@@ROUTER_DOMAIN@@/api/auth/oidc/handler/frame"
+      keycloak:
+        url: "https://cf-idp-keycloak-keycloak.@@ROUTER_DOMAIN@@"
+        privateUrl: https://cf-idp-keycloak.keycloak.svc:8443
+      microcks:
+        url: "https://microcks.@@ROUTER_DOMAIN@@"
+        redirectUri: "https://microcks.@@ROUTER_DOMAIN@@/*"
+      hawtio:
+        host: "hawtio.@@ROUTER_DOMAIN@@"
+      gitea:
+        rootUrl: "https://gitea-gitea.@@ROUTER_DOMAIN@@/"
+        domain: "gitea-gitea.@@ROUTER_DOMAIN@@"
+        sshDomain: "gitea-ssh.@@ROUTER_DOMAIN@@"
+    build:
+      sourceRevision: main
+      sccClusterRoleName: system:openshift:scc:pipelines-scc
+      deploymentUpdate:
+        strategy: restart

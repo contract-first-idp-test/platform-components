@@ -1,0 +1,10 @@
+apiVersion: argoproj.io/v1beta1
+kind: ArgoCD
+metadata:
+  name: openshift-gitops
+  namespace: openshift-gitops
+spec:
+  applicationSet:
+    extraCommandArgs:
+      - --enable-policy-override
+  kustomizeBuildOptions: --load-restrictor LoadRestrictionsNone

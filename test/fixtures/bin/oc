@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+case "$*" in
+  'whoami --show-server') printf '%s\n' 'https://api.fixture.example:6443' ;;
+  'get infrastructure cluster -o jsonpath={.status.infrastructureName}')
+    printf '%s' 'fixture-cluster'
+    ;;
+  'get ingress.config.openshift.io cluster -o jsonpath={.spec.domain}')
+    printf '%s' 'apps.fixture.example'
+    ;;
+  *)
+    printf 'unexpected mock oc command: %s\n' "$*" >&2
+    exit 1
+    ;;
+esac

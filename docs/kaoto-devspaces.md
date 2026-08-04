@@ -12,4 +12,4 @@ This repository configures Dev Spaces to use `https://open-vsx.org`. The compani
 
 When a workspace starts, Dev Spaces resolves the recommendation through Open VSX and installs the extension into the hosted IDE. The platform preflight verifies that the cluster can reach the Open VSX API.
 
-`ENABLE_KAOTO_DEVSPACES=true` documents and validates this dependency. It requires `ENABLE_DEVSPACES=true`; it does not create a Kaoto Application.
+Kaoto follows the selected Dev Spaces Application; it does not create a separate platform Application.

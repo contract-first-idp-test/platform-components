@@ -1,21 +1,10 @@
 # Validation
 
-Run:
+Run `npm ci` followed by `npm test`. The Jest suite under `test/` checks shell syntax and the
+simplified architecture, exercises
+the workshop helper in a temporary repository with mocked cluster discovery, verifies the helper
+does not edit the inventory, and renders the GitOps operator, GitOps instance, and root
+Kustomizations with the unrestricted loader.
 
-```bash
-make validate
-```
-
-The validation suite performs:
-
-- YAML parsing;
-- pinned Operator package, channel, and catalog assertions;
-- nontrivial product CR API assertions;
-- source-key coverage for every `ExternalSecret`;
-- rejection of obsolete Kaoto and Microcks APIs, unsafe demo defaults, and removed installer-framework references;
-- contract checks for the `full`, `workshop`, and `minimal` profiles;
-- structural rendering of every local Kustomization.
-
-Validation is contributor tooling only. It does not discover the cluster, mutate configuration, create credentials, or perform installation.
-
-Static rendering cannot prove OLM resolution, CRD admission, image pulls, storage provisioning, Routes, or controller convergence. A live installation remains the final integration test.
+ApplicationSet expansion remains a live-controller verification because local validation does not
+reimplement the OpenShift GitOps controller.

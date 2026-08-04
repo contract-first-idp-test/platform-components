@@ -2,7 +2,7 @@
 
 This repository deliberately evolves rather than discards the prior implementations.
 
-- Argo CD project separation, explicit Applications, operator composition, Keycloak 26,
+- Argo CD project separation, ApplicationSet composition, operator composition, Keycloak 26,
   `ApicurioRegistry3`, Quay Bridge, Crunchy PostgreSQL, RHDH 1.10 configuration, and the Java 21
   Maven Task originate in the referenced Nusun platform manifest.
 - Apicurito, Kaoto, Hawtio, Microcks, Dev Spaces, Spectral, demo users, and the original app-of-apps
