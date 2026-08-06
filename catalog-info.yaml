@@ -1,0 +1,84 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: workshop
+  title: Contract-First IDP Workshop Target
+  description: Public repository and cluster contract for this platform target.
+  annotations:
+    github.com/project-slug: "contract-first-idp-test/platform-components"
+spec:
+  owner: "group:default/backstage-admins"
+  type: contract-first-idp-target
+  platform:
+    distribution:
+      version: v1.0.0
+    configuration:
+      host: "github.com"
+      organization: "contract-first-idp-test"
+      repository: "platform-components"
+      repositoryUrl: "https://github.com/contract-first-idp-test/platform-components.git"
+      revision: "main"
+      valuesPath: catalog-info.yaml
+    tenantAdmission:
+      branch: "main"
+      path: tenants
+    target:
+      name: workshop
+    cluster:
+      name: "cluster-j7ngf-24w6k"
+      apiUrl: "https://api.cluster-j7ngf.dyn.redhatworkshops.io:6443"
+      routerDomain: "apps.cluster-j7ngf.dyn.redhatworkshops.io"
+    argocd:
+      namespace: openshift-gitops
+      destinationServer: https://kubernetes.default.svc
+    dependencies:
+      softwareTemplates:
+        host: github.com
+        organization: contract-first-idp-test
+        repository: software-templates
+        repositoryUrl: https://github.com/contract-first-idp-test/software-templates.git
+        revision: v1.0.0
+        catalogPath: catalog-info.yaml
+      developerCharts:
+        repositoryUrl: https://github.com/contract-first-idp-test/developer-charts.git
+        revision: v1.0.0
+    charts:
+      repositoryUrl: https://github.com/contract-first-idp-test/developer-charts.git
+      revision: v1.0.0
+    schemaRegistry:
+      apiUrl: "https://apicurio.apps.cluster-j7ngf.dyn.redhatworkshops.io/apis/registry/v3"
+      uiUrl: "https://apicurio-ui.apps.cluster-j7ngf.dyn.redhatworkshops.io"
+    spectralRules:
+      repositoryUrl: https://github.com/contract-first-idp/spectral-rules.git
+      revision: f2a1e6ab9f428eb822c232d8f460ff1e00199113
+      path: ruleset.yaml
+    registry:
+      quay:
+        host: "registry-quay-quay.apps.cluster-j7ngf.dyn.redhatworkshops.io"
+        url: "https://registry-quay-quay.apps.cluster-j7ngf.dyn.redhatworkshops.io"
+        clusterId: openshift
+        credentials:
+          sourcePullSecretName: default-quay-openshift
+          destinationPushSecretName: builder-quay-openshift
+          runtimePullSecretName: default-quay-openshift
+    services:
+      developerHub:
+        url: "https://backstage-backstage-developer-hub.apps.cluster-j7ngf.dyn.redhatworkshops.io"
+        oidcCallbackUrl: "https://backstage-backstage-developer-hub.apps.cluster-j7ngf.dyn.redhatworkshops.io/api/auth/oidc/handler/frame"
+      keycloak:
+        url: "https://cf-idp-keycloak-keycloak.apps.cluster-j7ngf.dyn.redhatworkshops.io"
+        privateUrl: https://cf-idp-keycloak.keycloak.svc:8443
+      microcks:
+        url: "https://microcks.apps.cluster-j7ngf.dyn.redhatworkshops.io"
+        redirectUri: "https://microcks.apps.cluster-j7ngf.dyn.redhatworkshops.io/*"
+      hawtio:
+        host: "hawtio.apps.cluster-j7ngf.dyn.redhatworkshops.io"
+      gitea:
+        rootUrl: "https://gitea-gitea.apps.cluster-j7ngf.dyn.redhatworkshops.io/"
+        domain: "gitea-gitea.apps.cluster-j7ngf.dyn.redhatworkshops.io"
+        sshDomain: "gitea-ssh.apps.cluster-j7ngf.dyn.redhatworkshops.io"
+    build:
+      sourceRevision: main
+      sccClusterRoleName: system:openshift:scc:pipelines-scc
+      deploymentUpdate:
+        strategy: restart
