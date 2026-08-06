@@ -145,13 +145,26 @@ describe('repository structure and public contracts', () => {
       .toEqual(['platform-target-config']);
   });
 
-  test('uses native Quay programmatic bootstrap for the Bridge credential', () => {
+  test('initializes the Quay owner before native bootstrap supplies the Bridge credential', () => {
     const quay = read('components/quay/external-secret.yaml');
     expect(quay).toContain('FEATURE_PROGRAMMATIC_BOOTSTRAP: true');
     expect(quay).toContain('BOOTSTRAP_TOKEN_OWNER: {{ .username }}');
     expect(quay).toContain('BOOTSTRAP_TOKEN_SCOPE:');
-    expect(exists('components/quay/bootstrap-job.yaml')).toBe(false);
+
+    const quayResources = parseDocuments(quay);
+    const bootstrapSecret = quayResources.find(resource =>
+      resource.kind === 'ExternalSecret' && resource.metadata.name === 'quay-bootstrap');
+    expect(bootstrapSecret.spec.data.map(item => item.secretKey)).toEqual([
+      'platformConfig', 'username', 'password', 'email',
+    ]);
+
+    expect(exists('components/quay/bootstrap-job.yaml')).toBe(true);
     expect(exists('components/quay/bootstrap-rbac.yaml')).toBe(false);
+    const initializeJob = YAML.parse(read('components/quay/bootstrap-job.yaml'));
+    expect(initializeJob.spec.template.spec.automountServiceAccountToken).toBe(false);
+    const initializeScript = initializeJob.spec.template.spec.containers[0].args.join('\n');
+    expect(initializeScript).toContain('/api/v1/user/initialize');
+    expect(initializeScript).not.toContain('access_token');
 
     const bridge = [
       ...parseDocuments(read('components/quay-bridge/bootstrap-token-secret.yaml')),
@@ -162,11 +175,8 @@ describe('repository structure and public contracts', () => {
     expect(generatedToken.spec).toMatchObject({
       secretStoreRef: {kind: 'SecretStore', name: 'quay-bootstrap-token'},
       target: {name: 'quay-access-token', creationPolicy: 'Owner'},
+      dataFrom: [{extract: {key: 'registry-bootstrap-token'}}],
     });
-    expect(generatedToken.spec.data).toEqual([{
-      secretKey: 'bootstrapToken',
-      remoteRef: {key: 'registry-bootstrap-token', property: 'token.json'},
-    }]);
     expect(generatedToken.spec.target.template.data.token)
       .toContain('fromJson).access_token');
 

@@ -1,0 +1,77 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: quay-initialize
+  namespace: quay
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  activeDeadlineSeconds: 900
+  backoffLimit: 6
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: quay-initialize
+    spec:
+      automountServiceAccountToken: false
+      restartPolicy: OnFailure
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: initialize
+          image: registry.access.redhat.com/ubi9/ubi-minimal:9.6
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+          env:
+            - name: QUAY_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: quay-bootstrap
+                  key: username
+            - name: QUAY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: quay-bootstrap
+                  key: password
+            - name: QUAY_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: quay-bootstrap
+                  key: email
+            - name: QUAY_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: quay-bootstrap
+                  key: host
+          command:
+            - /bin/sh
+            - -ec
+          args:
+            - |
+              echo "Waiting for Quay..."
+              until curl --silent --show-error --fail --insecure \
+                "https://${QUAY_HOST}/health/instance" >/dev/null; do
+                sleep 10
+              done
+
+              echo "Creating the initial Quay user..."
+              payload="$(
+                printf \
+                  '{"username":"%s","password":"%s","email":"%s"}' \
+                  "${QUAY_USERNAME}" \
+                  "${QUAY_PASSWORD}" \
+                  "${QUAY_EMAIL}"
+              )"
+
+              curl --silent --show-error --fail-with-body --insecure \
+                -X POST "https://${QUAY_HOST}/api/v1/user/initialize" \
+                -H 'content-type: application/json' \
+                --data "${payload}"
+
+              echo
+              echo "Initial Quay user created."
