@@ -5,3 +5,5 @@ resources:
   - external-secret.yaml
   - quay.yaml
   - bootstrap-job.yaml
+  - activate-rbac.yaml
+  - activate-job.yaml

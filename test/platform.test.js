@@ -162,9 +162,39 @@ describe('repository structure and public contracts', () => {
     expect(exists('components/quay/bootstrap-rbac.yaml')).toBe(false);
     const initializeJob = YAML.parse(read('components/quay/bootstrap-job.yaml'));
     expect(initializeJob.spec.template.spec.automountServiceAccountToken).toBe(false);
+    expect(initializeJob.spec.template.spec.serviceAccountName).toBeUndefined();
+    expect(initializeJob.spec.template.spec.initContainers).toBeUndefined();
     const initializeScript = initializeJob.spec.template.spec.containers[0].args.join('\n');
     expect(initializeScript).toContain('/api/v1/user/initialize');
     expect(initializeScript).not.toContain('access_token');
+    expect(JSON.stringify(initializeJob.spec.template.spec)).not.toContain('rollout');
+
+    expect(exists('components/quay/activate-job.yaml')).toBe(true);
+    expect(exists('components/quay/activate-rbac.yaml')).toBe(true);
+    const activateRbac = parseDocuments(read('components/quay/activate-rbac.yaml'));
+    expect(activateRbac.map(resource => resource.kind)).toEqual([
+      'ServiceAccount', 'Role', 'RoleBinding',
+    ]);
+    expect(activateRbac.find(resource => resource.kind === 'ServiceAccount').metadata.name)
+      .toBe('quay-activate');
+    expect(activateRbac.find(resource => resource.kind === 'Role').rules).toEqual([{
+      apiGroups: ['apps'],
+      resources: ['deployments'],
+      resourceNames: ['registry-quay-app'],
+      verbs: ['get', 'patch'],
+    }]);
+
+    const activateJob = YAML.parse(read('components/quay/activate-job.yaml'));
+    expect(activateJob.metadata.annotations['argocd.argoproj.io/sync-wave']).toBe('6');
+    expect(activateJob.spec.template.spec).toMatchObject({
+      serviceAccountName: 'quay-activate',
+      automountServiceAccountToken: true,
+    });
+    const restart = activateJob.spec.template.spec.containers[0];
+    expect(restart.image).toBe('quay.io/openshift/origin-cli:latest');
+    expect([restart.command, restart.args].flat()).toEqual([
+      'oc', 'rollout', 'restart', 'deployment/registry-quay-app', '-n', 'quay',
+    ]);
 
     const bridge = [
       ...parseDocuments(read('components/quay-bridge/bootstrap-token-secret.yaml')),

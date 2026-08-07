@@ -54,9 +54,10 @@ Once installed:
 - Argo CD combines tenant intent with released charts and reconciles OpenShift resources;
 - platform credentials remain in the cluster, outside public catalog contracts.
 
-Reusable implementation charts follow the `charts/<entity>/<responsibility>` convention in
-`developer-charts`. Every repository created by a golden path keeps its primary Backstage entity at
-`/catalog-info.yaml`, making discovery and ownership predictable.
+The released implementation paths are `domain/environment`, `system/environment`, `api/openapi`,
+`component/openjdk`, and `resource/postgresql` under `developer-charts/charts`. Every repository
+created by a golden path keeps its primary Backstage entity at `/catalog-info.yaml`, making
+discovery and ownership predictable.
 
 ## Contributing
 

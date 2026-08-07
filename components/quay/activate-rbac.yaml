@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: quay-activate
+  namespace: quay
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: quay-activate
+  namespace: quay
+rules:
+  - apiGroups: [apps]
+    resources: [deployments]
+    resourceNames: [registry-quay-app]
+    verbs: [get, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: quay-activate
+  namespace: quay
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: quay-activate
+subjects:
+  - kind: ServiceAccount
+    name: quay-activate
+    namespace: quay
