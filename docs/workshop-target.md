@@ -12,3 +12,8 @@ repository.
 `spec.platform.argocd.webhooks.application` and `applicationSet` are public, non-secret endpoints
 derived from the discovered router domain. Domain and System golden paths use them for immediate
 push notification while their Git generators continue polling.
+
+`spec.platform.services.devSpaces.url` and `githubCallbackUrl` are also derived from that router
+domain. The Dev Spaces Application uses the service URL to set `CheCluster.spec.networking.hostname`
+explicitly, making the GitHub callback available before installation instead of depending on an
+Operator-selected hostname.

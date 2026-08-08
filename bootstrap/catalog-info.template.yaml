@@ -65,6 +65,9 @@ spec:
           destinationPushSecretName: builder-quay-openshift
           runtimePullSecretName: default-quay-openshift
     services:
+      devSpaces:
+        url: "https://devspaces.@@ROUTER_DOMAIN@@"
+        githubCallbackUrl: "https://devspaces.@@ROUTER_DOMAIN@@/api/oauth/callback"
       developerHub:
         url: "https://backstage-backstage-developer-hub.@@ROUTER_DOMAIN@@"
         oidcCallbackUrl: "https://backstage-backstage-developer-hub.@@ROUTER_DOMAIN@@/api/auth/oidc/handler/frame"

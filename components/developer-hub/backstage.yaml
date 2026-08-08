@@ -14,9 +14,9 @@ spec:
         - {name: rhdh-secrets}
         - {name: backstage-cluster-viewer-token, key: token}
     extraFiles:
+      mountPath: /opt/app-root/src/kubernetes-ca
       configMaps:
         - name: kube-root-ca.crt
           key: ca.crt
-          mountPath: /opt/app-root/src/kubernetes-ca
     route: {enabled: true}
   database: {enableLocalDb: true}

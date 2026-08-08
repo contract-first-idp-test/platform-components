@@ -20,16 +20,18 @@ contributors testing coordinated source changes.
 
 ## The installation in six steps
 
-The [complete workshop guide](bootstrap/README.md) includes prerequisites, review points, and
-verification commands. The happy path is:
+The [complete workshop guide](bootstrap/README.md) includes the prerequisites, exact commands, and
+the GitHub App reference. The happy path is:
 
 1. Fork and clone this repository.
-2. Log in to OpenShift as a cluster administrator.
-3. Run `bootstrap/configure-workshop.sh` to generate the public platform target.
-4. Create the CF-IDP GitHub App used by Developer Hub and Dev Spaces, add the derived Dev Spaces
-   callback, and install it into the workshop organization.
-5. Review and commit the selected platform Applications.
-6. Create the local credentials Secret and apply the root bootstrap Kustomization.
+2. Log in to OpenShift and run `bootstrap/configure-workshop.sh` to generate the public platform
+   target.
+3. Configure and install the CF-IDP GitHub App, ensure the standard teams exist, and populate the
+   ignored credentials file.
+4. Optionally customize the inventory, then commit and push the workshop configuration.
+5. Bootstrap OpenShift GitOps.
+6. Create the cluster credentials Secret and apply the root bootstrap; Argo CD owns convergence
+   from there.
 
 The repository keeps configuration intentionally small and visible:
 
@@ -61,7 +63,7 @@ capabilities and `domain-maintainers` owning tenant entities. Developer Hub and 
 currently configured against one CF-IDP GitHub App: Developer Hub uses installation credentials for
 machine automation, while Dev Spaces uses its client credentials to authorize each GitHub user.
 Developer Hub human sign-in stays on Keycloak. The
-[workshop installation](bootstrap/README.md#create-the-cf-idp-github-app) is the authoritative App
+[workshop installation](bootstrap/README.md#configure-the-cf-idp-github-app) is the authoritative App
 creation and credential-mapping procedure.
 
 The released implementation paths are `domain/environment`, `system/environment`, `api/openapi`,

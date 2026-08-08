@@ -9,14 +9,14 @@ reconcile. Credential rotation updates ignored `bootstrap/secrets.env`, recreate
 
 ## Developer Hub and Dev Spaces GitHub App rotation
 
-The [workshop App procedure](../bootstrap/README.md#create-the-cf-idp-github-app) defines the single
+The [workshop App procedure](../bootstrap/README.md#configure-the-cf-idp-github-app) defines the single
 credential contract. When rotating it, generate the replacement client secret and/or private key in
 the existing GitHub App, update `GITHUB_APP_CLIENT_SECRET` and/or
 `GITHUB_APP_PRIVATE_KEY_BASE64` in ignored `bootstrap/secrets.env`, and recreate
 `platform-secrets` with the installation command from the workshop guide. ESO sends the shared
 client secret to both Developer Hub and Dev Spaces, while it decodes and sends the private key only
 to Developer Hub. Wait for both ExternalSecrets to become Ready and repeat the
-[GitHub integration checks](../bootstrap/README.md#verify-the-developer-hub-and-dev-spaces-github-app-integrations) before
+[GitHub integration checks](validation.md#github-app-integrations) before
 revoking the old GitHub credential.
 
 Application removal is intentionally conservative: the ApplicationSet can create and update but

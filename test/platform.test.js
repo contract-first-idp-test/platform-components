@@ -247,6 +247,7 @@ describe('repository structure and public contracts', () => {
 
   test('preserves the root platform-target schema consumed by golden paths', () => {
     const catalog = YAML.parse(read('catalog-info.yaml'));
+    const catalogTemplate = YAML.parse(read('bootstrap/catalog-info.template.yaml'));
     expect(catalog).toMatchObject({
       apiVersion: 'backstage.io/v1alpha1',
       kind: 'Resource',
@@ -272,6 +273,10 @@ describe('repository structure and public contracts', () => {
     expect(YAML.parse(read('bootstrap/catalog-info.template.yaml'))
       .spec.platform.dependencies.softwareTemplates)
       .toEqual(catalog.spec.platform.dependencies.softwareTemplates);
+    expect(catalogTemplate.spec.platform.services.devSpaces).toEqual({
+      url: 'https://devspaces.@@ROUTER_DOMAIN@@',
+      githubCallbackUrl: 'https://devspaces.@@ROUTER_DOMAIN@@/api/oauth/callback',
+    });
   });
 
   test('loads one revision-aware template catalog while retaining broad discovery', () => {
@@ -324,10 +329,13 @@ describe('repository structure and public contracts', () => {
     expect(cluster.skipTLSVerify).toBeUndefined();
 
     const backstage = YAML.parse(read('components/developer-hub/backstage.yaml'));
-    expect(backstage.spec.application.extraFiles.configMaps).toEqual([{
-      name: 'kube-root-ca.crt', key: 'ca.crt',
+    expect(backstage.spec.application.extraFiles).toEqual({
       mountPath: '/opt/app-root/src/kubernetes-ca',
-    }]);
+      configMaps: [{name: 'kube-root-ca.crt', key: 'ca.crt'}],
+    });
+    const mountedCaFile = `${backstage.spec.application.extraFiles.mountPath}/` +
+      backstage.spec.application.extraFiles.configMaps[0].key;
+    expect(cluster.caFile).toBe(mountedCaFile);
 
     expect(config.signInPage).toBe('oidc');
     expect(config.auth.providers.github).toBeUndefined();
@@ -402,9 +410,29 @@ describe('repository structure and public contracts', () => {
     for (const key of obsoleteKeys) expect(contractSources).not.toContain(key);
 
     const workshop = read('bootstrap/README.md');
+    const validation = read('docs/validation.md');
+    expect(workshop).toContain('## Before you begin');
+    expect(workshop).toContain('1. Clone the platform repository.');
+    expect(workshop).toContain('2. Configure the workshop target.');
+    expect(workshop).toContain('3. Configure GitHub and credentials.');
+    expect(workshop).toContain('4. Commit the workshop configuration.');
+    expect(workshop).toContain('5. Bootstrap OpenShift GitOps.');
+    expect(workshop).toContain('6. Start the platform.');
+    expect(workshop).toContain('`catalog-info.yaml` is the source of truth');
     expect(workshop).toContain('Do not create a separate GitHub OAuth App for Dev Spaces.');
-    expect(workshop).toContain('https://devspaces.<router-domain>/api/oauth/callback');
-    expect(workshop).toContain("-o jsonpath='{.status.cheURL}{\"\\n\"}'");
+    expect(workshop).toContain('spec.platform.services.devSpaces.url');
+    expect(workshop).toContain('spec.platform.services.devSpaces.githubCallbackUrl');
+    expect(workshop).toContain('From this point forward, Argo CD owns platform convergence.');
+    expect(workshop).toContain('oc apply -k bootstrap/gitops/operator');
+    expect(workshop).toContain('oc apply -k bootstrap/gitops/instance');
+    expect(workshop).toContain('oc create secret generic platform-secrets');
+    expect(workshop).toContain('oc kustomize bootstrap/root');
+    expect(workshop).not.toContain('ROUTER_DOMAIN=');
+    expect(workshop).not.toContain("-o jsonpath='{.status.cheURL}");
+    expect(workshop).not.toContain('OpenShift Dev Spaces 3.28 therefore produces');
+    expect(validation).toContain("-o jsonpath='{.status.cheURL}{\"\\n\"}'");
+    expect(validation).toContain('oc get externalsecret rhdh-secrets -n developer-hub');
+    expect(validation).toContain('/opt/app-root/src/kubernetes-ca/ca.crt');
   });
 
   test('publishes both GitOps webhook endpoints from the router-domain contract', () => {
@@ -572,7 +600,8 @@ describe('ApplicationSet policy and rendering', () => {
   test('maps every inventory path to an explicit supported renderer', () => {
     expect(new Set(inventory.map(item => item.renderer)))
       .toEqual(new Set([
-        'kustomize', 'keycloak', 'apicurio', 'quay-bridge', 'microcks', 'directory',
+        'kustomize', 'keycloak', 'devspaces', 'apicurio', 'quay-bridge', 'microcks',
+        'directory',
       ]));
     for (const item of inventory) {
       expect({name: item.name, pathExists: exists(item.path)})
@@ -592,14 +621,18 @@ describe('ApplicationSet policy and rendering', () => {
       targetRevision: '{{ .spec.platform.configuration.revision }}',
       path: '{{ .path }}',
     });
-    expect(applicationSet.spec.templatePatch).toContain('if eq .renderer "apicurio"');
-    for (const renderer of ['quay-bridge', 'microcks', 'directory']) {
+    expect(applicationSet.spec.templatePatch).toContain('if eq .renderer "keycloak"');
+    for (const renderer of ['devspaces', 'apicurio', 'quay-bridge', 'microcks', 'directory']) {
       expect(applicationSet.spec.templatePatch).toContain(`else if eq .renderer "${renderer}"`);
     }
     expect(applicationSet.spec.templatePatch).toMatch(
       /else if eq \.renderer "directory"[\s\S]*directory:\s*\n\s+recurse: true/,
     );
     const patch = applicationSet.spec.templatePatch;
+    expect(inventory.find(item => item.name === 'devspaces').renderer).toBe('devspaces');
+    expect(patch).toContain('kind: CheCluster');
+    expect(patch).toContain('path: /spec/networking/hostname');
+    expect(patch).toContain('.spec.platform.services.devSpaces.url');
     expect(patch).toContain('kind: ApicurioRegistry3');
     expect(patch).toContain('path: /spec/app/ingress/host');
     expect(patch).toContain('kind: QuayIntegration');
@@ -658,6 +691,10 @@ describe('ApplicationSet policy and rendering', () => {
       'argocd.argoproj.io/hook': 'PostSync',
       'argocd.argoproj.io/hook-delete-policy': 'BeforeHookCreation,HookSucceeded',
     });
+    expect(consoleJob.spec.template.spec.containers[0].image)
+      .toBe('registry.redhat.io/openshift4/ose-cli');
+    expect(read('components/pipelines/enable-console-plugin.yaml'))
+      .not.toContain('quay.io/openshift/origin-cli:4.16');
     const consoleScript = consoleJob.spec.template.spec.containers[0].args.join('\n');
     expect(consoleScript).toContain('/spec/plugins/-');
     expect(consoleScript).toContain('/spec/plugins');
@@ -701,6 +738,11 @@ describe('workshop helper and credential boundary', () => {
       expect(readFrom(checkout, 'catalog-info.yaml')).toContain('organization: "fixture-org"');
       expect(readFrom(checkout, 'catalog-info.yaml'))
         .toContain('apiUrl: "https://api.fixture.example:6443"');
+      expect(YAML.parse(readFrom(checkout, 'catalog-info.yaml')).spec.platform.services.devSpaces)
+        .toEqual({
+          url: 'https://devspaces.apps.fixture.example',
+          githubCallbackUrl: 'https://devspaces.apps.fixture.example/api/oauth/callback',
+        });
       expect(readFrom(checkout, 'bootstrap/root/kustomization.yaml'))
         .toContain('PLATFORM_REVISION=workshop');
     } finally {

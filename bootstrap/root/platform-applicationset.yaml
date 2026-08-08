@@ -38,7 +38,7 @@ spec:
                 - {name: quay, project: platform-services, namespace: quay, path: components/quay, renderer: kustomize, createNamespace: 'true', skipDryRun: 'true'}
                 - {name: quay-bridge, project: platform-services, namespace: openshift-operators, path: components/quay-bridge, renderer: quay-bridge, createNamespace: 'true', skipDryRun: 'true'}
                 - {name: pipelines, project: platform-services, namespace: tekton-tasks, path: components/pipelines, renderer: kustomize, createNamespace: 'true', skipDryRun: 'true'}
-                - {name: devspaces, project: platform-services, namespace: openshift-devspaces, path: components/devspaces, renderer: kustomize, createNamespace: 'true', skipDryRun: 'true'}
+                - {name: devspaces, project: platform-services, namespace: openshift-devspaces, path: components/devspaces, renderer: devspaces, createNamespace: 'true', skipDryRun: 'true'}
 
                 # API lifecycle. Apicurio and Microcks depend on Keycloak; Apicurio also needs PostgreSQL.
                 - {name: apicurio, project: platform-services, namespace: apicurio, path: components/apicurio, renderer: apicurio, createNamespace: 'true', skipDryRun: 'true'}
@@ -101,6 +101,19 @@ spec:
                 - op: add
                   path: /spec/host
                   value: {{ trimPrefix "https://" .spec.platform.services.keycloak.url | quote }}
+      {{- else if eq .renderer "devspaces" }}
+      source:
+        kustomize:
+          patches:
+            - target:
+                group: org.eclipse.che
+                version: v2
+                kind: CheCluster
+                name: devspaces
+              patch: |-
+                - op: add
+                  path: /spec/networking/hostname
+                  value: {{ trimPrefix "https://" .spec.platform.services.devSpaces.url | quote }}
       {{- else if eq .renderer "apicurio" }}
       source:
         kustomize:
