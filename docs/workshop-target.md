@@ -8,3 +8,7 @@ The current golden-path contract remains under `spec.platform`, including reposi
 admission, cluster, dependency, schema-registry, registry, service, and build facts. Its
 `valuesPath` is `catalog-info.yaml` so Domain activation reads the root entity from the platform
 repository.
+
+`spec.platform.argocd.webhooks.application` and `applicationSet` are public, non-secret endpoints
+derived from the discovered router domain. Domain and System golden paths use them for immediate
+push notification while their Git generators continue polling.

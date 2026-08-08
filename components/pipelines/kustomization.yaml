@@ -6,3 +6,4 @@ resources:
   - task-spectral.yaml
   - microcks-secret.yaml
   - task-microcks.yaml
+  - enable-console-plugin.yaml

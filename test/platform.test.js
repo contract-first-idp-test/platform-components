@@ -108,13 +108,41 @@ describe('repository structure and public contracts', () => {
     });
   });
 
-  test('keeps stable Keycloak identifiers at the generated secret boundary', () => {
+  test('uses the platform realm with one human demo user and required machine identities', () => {
     const realm = YAML.parse(read('components/keycloak/realm.yaml')).spec.realm;
-    expect(realm.id).toBe('cf-idp');
-    expect(realm.realm).toBe('cf-idp');
+    expect(realm).toMatchObject({id: 'platform', realm: 'platform', displayName: 'Platform'});
+    expect(realm.groups.map(group => group.name)).toEqual([
+      'platform-maintainers', 'domain-maintainers', 'domain-contributors', 'domain-viewers',
+      'microcks',
+    ]);
+    const humanUsers = realm.users.filter(user => !user.serviceAccountClientId);
+    expect(humanUsers).toEqual([expect.objectContaining({
+      username: '${DEMO_USER_USERNAME}',
+      groups: ['/platform-maintainers', '/domain-maintainers', '/microcks/manager'],
+    })]);
+    const realmManifest = YAML.parse(read('components/keycloak/realm.yaml'));
+    expect(realmManifest.spec.placeholders.DEMO_USER_USERNAME).toEqual({
+      secret: {name: 'keycloak-realm-secrets', key: 'demo-user-username'},
+    });
+    const keycloakSecrets = YAML.parse(read('components/keycloak/external-secrets.yaml'));
+    expect(keycloakSecrets.spec.target.template.data).toMatchObject({
+      'demo-user-username': '{{ .demoUserUsername }}',
+      'demo-user-password': '{{ .demoUserPassword }}',
+    });
+    expect(keycloakSecrets.spec.data.slice(-2).map(item => [
+      item.secretKey, item.remoteRef.property,
+    ])).toEqual([
+      ['demoUserUsername', 'DEMO_USER_USERNAME'],
+      ['demoUserPassword', 'DEMO_USER_PASSWORD'],
+    ]);
+    expect(Object.keys(envFile('bootstrap/secrets.env.example')).slice(0, 2)).toEqual([
+      'DEMO_USER_USERNAME', 'DEMO_USER_PASSWORD',
+    ]);
     expect(realm.clients.find(client => client.clientId === 'backstage')).toBeDefined();
     expect(realm.users.find(user => user.username === 'service-account-backstage')
       .serviceAccountClientId).toBe('backstage');
+    expect(realm.users.find(user => user.username === 'service-account-microcks-serviceaccount')
+      .serviceAccountClientId).toBe('microcks-serviceaccount');
 
     const appConfigManifest = YAML.parse(read('components/developer-hub/app-config.yaml'));
     const appConfigSource = appConfigManifest.data['app-config-rhdh.yaml'];
@@ -131,14 +159,15 @@ describe('repository structure and public contracts', () => {
       clientId: 'PLACEHOLDER_KEYCLOAK_CLIENT_ID',
     });
     expect(appConfigSource).toMatch(/\$\{KEYCLOAK_(REALM|CLIENT_ID)\}/);
-    expect(YAML.parse(read('components/microcks/values.yaml')).keycloak.realm).toBe('cf-idp');
+    expect(YAML.parse(read('components/microcks/values.yaml')).keycloak.realm).toBe('platform');
     const externalSecret = YAML.parse(read('components/developer-hub/external-secret.yaml'));
     expect(externalSecret.spec.target.template.data).toMatchObject({
       KEYCLOAK_CLIENT_ID: 'backstage',
-      KEYCLOAK_REALM: 'cf-idp',
+      KEYCLOAK_REALM: 'platform',
     });
     expect(externalSecret.spec.data.map(item => item.secretKey)).toEqual([
-      'platformConfig', 'backendSecret', 'githubToken', 'keycloakClientSecret',
+      'platformConfig', 'backstageBackendSecret', 'githubAppId', 'githubAppClientId',
+      'githubAppClientSecret', 'githubAppPrivateKeyBase64', 'keycloakClientSecret',
     ]);
     const configuration = YAML.parse(read('bootstrap/root/configuration/kustomization.yaml'));
     expect(configuration.secretGenerator.map(item => item.name))
@@ -223,6 +252,7 @@ describe('repository structure and public contracts', () => {
       kind: 'Resource',
       metadata: {name: 'workshop'},
       spec: {
+        owner: 'group:default/platform-maintainers',
         type: 'contract-first-idp-target',
         platform: {
           configuration: {valuesPath: 'catalog-info.yaml'},
@@ -259,11 +289,135 @@ describe('repository structure and public contracts', () => {
       branch: 'main',
       repository: 'PLACEHOLDER_GITHUB_CATALOG_REPOSITORY_FILTER',
     });
+    expect(config.catalog.providers.github['cf-idp'].app)
+      .toBe('PLACEHOLDER_GITHUB_APP_ID');
+    expect(config.catalog.providers.github['cf-idp'].organization).toBeUndefined();
+    expect(config.integrations.github[0]).toMatchObject({
+      host: 'PLACEHOLDER_GITHUB_HOST',
+      apps: [expect.objectContaining({
+        appId: 'PLACEHOLDER_GITHUB_APP_ID',
+        clientId: 'PLACEHOLDER_GITHUB_APP_CLIENT_ID',
+        clientSecret: 'PLACEHOLDER_GITHUB_APP_CLIENT_SECRET',
+      })],
+    });
+    expect(source).not.toContain(['GITHUB', 'TOKEN'].join('_'));
+    expect(source).not.toContain('GITHUB_ORG');
     expect(source).not.toContain('PLATFORM_TARGET_CATALOG_URL');
     for (const hardcoded of [
       'contract-first-idp-test', 'software-templates', 'v1.0.0',
       'github.com/contract-first-idp-test/software-templates',
     ]) expect(source).not.toContain(hardcoded);
+  });
+
+  test('scopes GitHub App credentials to Developer Hub and Dev Spaces safely', () => {
+    const source = read('components/developer-hub/app-config.yaml');
+    const config = YAML.parse(YAML.parse(source).data['app-config-rhdh.yaml'].replace(
+      /\$\{([A-Za-z0-9_]+)\}/g, 'PLACEHOLDER_$1',
+    ));
+    const cluster = config.kubernetes.clusterLocatorMethods[0].clusters[0];
+    expect(cluster).toMatchObject({
+      url: 'https://kubernetes.default.svc',
+      authProvider: 'serviceAccount',
+      serviceAccountToken: 'PLACEHOLDER_token',
+      caFile: '/opt/app-root/src/kubernetes-ca/ca.crt',
+    });
+    expect(cluster.skipTLSVerify).toBeUndefined();
+
+    const backstage = YAML.parse(read('components/developer-hub/backstage.yaml'));
+    expect(backstage.spec.application.extraFiles.configMaps).toEqual([{
+      name: 'kube-root-ca.crt', key: 'ca.crt',
+      mountPath: '/opt/app-root/src/kubernetes-ca',
+    }]);
+
+    expect(config.signInPage).toBe('oidc');
+    expect(config.auth.providers.github).toBeUndefined();
+
+    const developerHub = YAML.parse(read('components/developer-hub/external-secret.yaml'));
+    expect(developerHub.spec.target.template.data).toMatchObject({
+      GITHUB_APP_ID: '{{ .githubAppId }}',
+      GITHUB_APP_CLIENT_ID: '{{ .githubAppClientId }}',
+      GITHUB_APP_CLIENT_SECRET: '{{ .githubAppClientSecret }}',
+    });
+    expect(developerHub.spec.target.template.data.GITHUB_APP_PRIVATE_KEY)
+      .toContain('githubAppPrivateKeyBase64 | b64dec');
+    const developerHubProperties = Object.fromEntries(developerHub.spec.data
+      .filter(item => item.secretKey.startsWith('githubApp'))
+      .map(item => [item.secretKey, item.remoteRef.property]));
+    expect(developerHubProperties).toEqual({
+      githubAppId: 'GITHUB_APP_ID',
+      githubAppClientId: 'GITHUB_APP_CLIENT_ID',
+      githubAppClientSecret: 'GITHUB_APP_CLIENT_SECRET',
+      githubAppPrivateKeyBase64: 'GITHUB_APP_PRIVATE_KEY_BASE64',
+    });
+
+    const devSpaces = YAML.parse(read('components/devspaces/oauth-secret.yaml'));
+    expect(devSpaces.spec.target).toMatchObject({
+      name: 'github-oauth-config',
+      template: {
+        metadata: {
+          labels: {
+            'app.kubernetes.io/part-of': 'che.eclipse.org',
+            'app.kubernetes.io/component': 'oauth-scm-configuration',
+          },
+          annotations: {
+            'che.eclipse.org/oauth-scm-server': 'github',
+            'che.eclipse.org/scm-server-endpoint': 'https://github.com/',
+          },
+        },
+        data: {id: '{{ .clientId }}', secret: '{{ .clientSecret }}'},
+      },
+    });
+    expect(Object.fromEntries(devSpaces.spec.data.map(item => [
+      item.secretKey, item.remoteRef.property,
+    ]))).toEqual({
+      clientId: 'GITHUB_APP_CLIENT_ID',
+      clientSecret: 'GITHUB_APP_CLIENT_SECRET',
+    });
+    expect(JSON.stringify(devSpaces)).not.toContain('PRIVATE_KEY');
+
+    const cheCluster = YAML.parse(read('components/devspaces/checluster.yaml'));
+    expect(cheCluster.spec.gitServices.github).toEqual([{
+      secretName: 'github-oauth-config', endpoint: 'https://github.com',
+    }]);
+
+    const appKeys = Object.keys(envFile('bootstrap/secrets.env.example'))
+      .filter(key => key.startsWith('GITHUB_'));
+    expect(appKeys).toEqual([
+      'GITHUB_APP_ID', 'GITHUB_APP_CLIENT_ID', 'GITHUB_APP_CLIENT_SECRET',
+      'GITHUB_APP_PRIVATE_KEY_BASE64',
+    ]);
+    const obsoleteKeys = [
+      ['DEVSPACES', 'GITHUB', 'CLIENT_ID'].join('_'),
+      ['DEVSPACES', 'GITHUB', 'CLIENT_SECRET'].join('_'),
+      ['GITHUB', 'TOKEN'].join('_'),
+      ['GITHUB', 'APP', 'APP_ID'].join('_'),
+      ['GITHUB', 'APP', 'CLIENT_ID', 'INTEGRATION'].join('_'),
+      ['GITHUB', 'APP', 'CLIENT_SECRET', 'INTEGRATION'].join('_'),
+    ];
+    const contractSources = [
+      read('bootstrap/secrets.env.example'), source,
+      read('components/developer-hub/external-secret.yaml'),
+      read('components/devspaces/oauth-secret.yaml'),
+    ].join('\n');
+    for (const key of obsoleteKeys) expect(contractSources).not.toContain(key);
+
+    const workshop = read('bootstrap/README.md');
+    expect(workshop).toContain('Do not create a separate GitHub OAuth App for Dev Spaces.');
+    expect(workshop).toContain('https://devspaces.<router-domain>/api/oauth/callback');
+    expect(workshop).toContain("-o jsonpath='{.status.cheURL}{\"\\n\"}'");
+  });
+
+  test('publishes both GitOps webhook endpoints from the router-domain contract', () => {
+    const target = YAML.parse(read('catalog-info.yaml'));
+    expect(target.spec.platform.argocd.webhooks).toEqual({
+      application: 'https://openshift-gitops-server-openshift-gitops.' +
+        `${target.spec.platform.cluster.routerDomain}/api/webhook`,
+      applicationSet: 'https://openshift-gitops-applicationset-controller-openshift-gitops.' +
+        `${target.spec.platform.cluster.routerDomain}/api/webhook`,
+    });
+    const template = read('bootstrap/catalog-info.template.yaml');
+    expect(template).toContain('openshift-gitops-server-openshift-gitops.@@ROUTER_DOMAIN@@/api/webhook');
+    expect(template).toContain('openshift-gitops-applicationset-controller-openshift-gitops.@@ROUTER_DOMAIN@@/api/webhook');
   });
 });
 
@@ -412,7 +566,7 @@ describe('ApplicationSet policy and rendering', () => {
       createNamespace: 'true', skipDryRun: 'true',
     });
     expect(applicationSet.spec.templatePatch).toContain('SkipDryRunOnMissingResource=true');
-    expect(applicationSet.spec.templatePatch).toContain('realm: cf-idp');
+    expect(applicationSet.spec.templatePatch).toContain('realm: platform');
   });
 
   test('maps every inventory path to an explicit supported renderer', () => {
@@ -471,17 +625,44 @@ describe('ApplicationSet policy and rendering', () => {
       .toEqual(['--enable-policy-override']);
     expect(argo[0].spec.kustomizeBuildOptions)
       .toBe('--load-restrictor LoadRestrictionsNone');
+    const applicationSetRoute = instance.find(item => item.kind === 'Route');
+    expect(applicationSetRoute).toMatchObject({
+      metadata: {name: 'openshift-gitops-applicationset-controller'},
+      spec: {
+        port: {targetPort: 'webhook'},
+        to: {kind: 'Service', name: 'openshift-gitops-applicationset-controller'},
+      },
+    });
 
     const rootResources = render('bootstrap/root');
     expect(rootResources.filter(item => item.kind === 'Application')).toHaveLength(1);
     const renderedSets = rootResources.filter(item => item.kind === 'ApplicationSet');
     expect(renderedSets).toHaveLength(1);
-    expect(renderedSets[0].spec.templatePatch).toContain('realm: cf-idp');
+    expect(renderedSets[0].spec.templatePatch).toContain('realm: platform');
 
     const keycloak = render('components/keycloak');
     const realm = keycloak.find(item => item.kind === 'KeycloakRealmImport');
-    expect(realm.spec.realm.realm).toBe('cf-idp');
+    expect(realm.spec.realm.realm).toBe('platform');
     expect(realm.spec.realm.clients[0].clientId).toBe('backstage');
+
+    const pipelines = render('components/pipelines');
+    const consoleRole = pipelines.find(item =>
+      item.kind === 'ClusterRole' && item.metadata.name === 'enable-pipelines-console-plugin');
+    expect(consoleRole.rules).toEqual([{
+      apiGroups: ['operator.openshift.io'], resources: ['consoles'],
+      resourceNames: ['cluster'], verbs: ['get', 'patch'],
+    }]);
+    const consoleJob = pipelines.find(item =>
+      item.kind === 'Job' && item.metadata.name === 'enable-pipelines-console-plugin');
+    expect(consoleJob.metadata.annotations).toMatchObject({
+      'argocd.argoproj.io/hook': 'PostSync',
+      'argocd.argoproj.io/hook-delete-policy': 'BeforeHookCreation,HookSucceeded',
+    });
+    const consoleScript = consoleJob.spec.template.spec.containers[0].args.join('\n');
+    expect(consoleScript).toContain('/spec/plugins/-');
+    expect(consoleScript).toContain('/spec/plugins');
+    expect(consoleScript).toContain('pipelines-console-plugin');
+    expect(consoleScript).not.toContain('ConsolePlugin');
   });
 
   test('replaces both Application and ApplicationSet repository coordinates', () => {
@@ -512,9 +693,7 @@ describe('workshop helper and credential boundary', () => {
       const appSetPath = path.join(checkout, 'bootstrap/root/platform-applicationset.yaml');
       const before = sha256(appSetPath);
       const fixtureBin = path.join(checkout, 'test/fixtures/bin');
-      execFileSync(path.join(checkout, 'bootstrap/configure-workshop.sh'), [
-        'group:default/backstage-admins',
-      ], {
+      execFileSync(path.join(checkout, 'bootstrap/configure-workshop.sh'), [], {
         cwd: checkout,
         env: {...process.env, PATH: `${fixtureBin}${path.delimiter}${process.env.PATH}`},
       });

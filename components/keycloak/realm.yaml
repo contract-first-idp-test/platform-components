@@ -1,13 +1,17 @@
 apiVersion: k8s.keycloak.org/v2alpha1
 kind: KeycloakRealmImport
 metadata:
-  name: cf-idp-realm
+  name: platform-realm
   namespace: keycloak
   annotations:
     argocd.argoproj.io/sync-wave: '10'
 spec:
   keycloakCRName: cf-idp-keycloak
   placeholders:
+    DEMO_USER_USERNAME:
+      secret:
+        name: keycloak-realm-secrets
+        key: demo-user-username
     DEMO_USER_PASSWORD:
       secret:
         name: keycloak-realm-secrets
@@ -37,9 +41,9 @@ spec:
         name: keycloak-realm-secrets
         key: microcks-url
   realm:
-    id: cf-idp
-    realm: cf-idp
-    displayName: Contract-First IDP
+    id: platform
+    realm: platform
+    displayName: Platform
     enabled: true
     sslRequired: external
     registrationAllowed: false
@@ -58,9 +62,10 @@ spec:
           composite: false
           clientRole: true
     groups:
-    - name: backstage-admins
-    - name: operators
-    - name: developers
+    - name: platform-maintainers
+    - name: domain-maintainers
+    - name: domain-contributors
+    - name: domain-viewers
     - name: microcks
       path: /microcks
       attributes: {}
@@ -74,36 +79,16 @@ spec:
         clientRoles: {}
         subGroups: []
     users:
-    - username: backstage-admin
+    - username: ${DEMO_USER_USERNAME}
       enabled: true
       emailVerified: true
-      firstName: Backstage
-      lastName: Admin
-      email: backstage-admin@example.com
+      firstName: Platform
+      lastName: User
+      email: demo-user@example.com
       groups:
-      - /backstage-admins
-      credentials:
-      - type: password
-        value: ${DEMO_USER_PASSWORD}
-        temporary: false
-    - username: user-ops-1
-      enabled: true
-      firstName: Operations
-      lastName: One
-      email: user-ops-1@example.com
-      groups:
-      - /operators
-      credentials:
-      - type: password
-        value: ${DEMO_USER_PASSWORD}
-        temporary: false
-    - username: user-dev-1
-      enabled: true
-      firstName: Developer
-      lastName: One
-      email: user-dev-1@example.com
-      groups:
-      - /developers
+      - /platform-maintainers
+      - /domain-maintainers
+      - /microcks/manager
       credentials:
       - type: password
         value: ${DEMO_USER_PASSWORD}

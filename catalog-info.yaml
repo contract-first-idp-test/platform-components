@@ -7,7 +7,7 @@ metadata:
   annotations:
     github.com/project-slug: "contract-first-idp-test/platform-components"
 spec:
-  owner: "group:default/backstage-admins"
+  owner: group:default/platform-maintainers
   type: contract-first-idp-target
   platform:
     distribution:
@@ -31,6 +31,9 @@ spec:
     argocd:
       namespace: openshift-gitops
       destinationServer: https://kubernetes.default.svc
+      webhooks:
+        application: "https://openshift-gitops-server-openshift-gitops.apps.cluster-9n567.dyn.redhatworkshops.io/api/webhook"
+        applicationSet: "https://openshift-gitops-applicationset-controller-openshift-gitops.apps.cluster-9n567.dyn.redhatworkshops.io/api/webhook"
     dependencies:
       softwareTemplates:
         host: github.com

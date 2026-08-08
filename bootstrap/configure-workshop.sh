@@ -6,11 +6,7 @@ die() {
   exit 1
 }
 
-[[ $# -eq 1 ]] || die 'usage: ./bootstrap/configure-workshop.sh OWNER'
-owner=$1
-name='[a-z0-9]([a-z0-9._-]*[a-z0-9])?'
-[[ $owner =~ ^(group|user):${name}/${name}$ ]] ||
-  die 'OWNER must look like group:default/backstage-admins'
+[[ $# -eq 0 ]] || die 'usage: ./bootstrap/configure-workshop.sh'
 
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 template=$root/bootstrap/catalog-info.template.yaml
@@ -63,7 +59,6 @@ replace() {
   mv "$next" "$rendered"
 }
 
-replace OWNER "$owner"
 replace PLATFORM_REPO_URL "$repository_url"
 replace PLATFORM_REVISION "$revision"
 replace SCM_HOST "$scm_host"

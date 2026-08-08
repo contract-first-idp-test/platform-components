@@ -7,7 +7,7 @@ metadata:
   annotations:
     github.com/project-slug: "@@SCM_ORGANIZATION@@/@@SCM_REPOSITORY@@"
 spec:
-  owner: "@@OWNER@@"
+  owner: group:default/platform-maintainers
   type: contract-first-idp-target
   platform:
     distribution:
@@ -31,6 +31,9 @@ spec:
     argocd:
       namespace: openshift-gitops
       destinationServer: https://kubernetes.default.svc
+      webhooks:
+        application: "https://openshift-gitops-server-openshift-gitops.@@ROUTER_DOMAIN@@/api/webhook"
+        applicationSet: "https://openshift-gitops-applicationset-controller-openshift-gitops.@@ROUTER_DOMAIN@@/api/webhook"
     dependencies:
       softwareTemplates:
         host: github.com

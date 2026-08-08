@@ -1,0 +1,15 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: openshift-gitops-applicationset-controller
+  namespace: openshift-gitops
+spec:
+  port:
+    targetPort: webhook
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  to:
+    kind: Service
+    name: openshift-gitops-applicationset-controller
+    weight: 100

@@ -18,7 +18,7 @@ Installers normally need only this repository. The released `software-templates`
 `developer-charts` dependencies are consumed for you; sibling checkouts are needed only by
 contributors testing coordinated source changes.
 
-## The installation in five steps
+## The installation in six steps
 
 The [complete workshop guide](bootstrap/README.md) includes prerequisites, review points, and
 verification commands. The happy path is:
@@ -26,8 +26,10 @@ verification commands. The happy path is:
 1. Fork and clone this repository.
 2. Log in to OpenShift as a cluster administrator.
 3. Run `bootstrap/configure-workshop.sh` to generate the public platform target.
-4. Review and commit the selected platform Applications.
-5. Create the local credentials Secret and apply the root bootstrap Kustomization.
+4. Create the CF-IDP GitHub App used by Developer Hub and Dev Spaces, add the derived Dev Spaces
+   callback, and install it into the workshop organization.
+5. Review and commit the selected platform Applications.
+6. Create the local credentials Secret and apply the root bootstrap Kustomization.
 
 The repository keeps configuration intentionally small and visible:
 
@@ -53,6 +55,14 @@ Once installed:
 - golden paths create reviewable repositories and pull requests instead of writing to the cluster;
 - Argo CD combines tenant intent with released charts and reconciles OpenShift resources;
 - platform credentials remain in the cluster, outside public catalog contracts.
+
+The workshop identity contract uses realm `platform`, with `platform-maintainers` owning platform
+capabilities and `domain-maintainers` owning tenant entities. Developer Hub and Dev Spaces are
+currently configured against one CF-IDP GitHub App: Developer Hub uses installation credentials for
+machine automation, while Dev Spaces uses its client credentials to authorize each GitHub user.
+Developer Hub human sign-in stays on Keycloak. The
+[workshop installation](bootstrap/README.md#create-the-cf-idp-github-app) is the authoritative App
+creation and credential-mapping procedure.
 
 The released implementation paths are `domain/environment`, `system/environment`, `api/openapi`,
 `component/openjdk`, and `resource/postgresql` under `developer-charts/charts`. Every repository

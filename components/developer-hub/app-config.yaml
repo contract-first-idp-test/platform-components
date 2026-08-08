@@ -16,14 +16,14 @@ data:
               - /apis/registry/v3/
       auth:
         keys:
-          - secret: ${BACKEND_SECRET}
+          - secret: ${BACKSTAGE_BACKEND_SECRET}
       baseUrl: ${DEVELOPER_HUB_URL}
       cors:
         origin: ${DEVELOPER_HUB_URL}
     signInPage: oidc
     auth:
       session:
-        secret: ${BACKEND_SECRET}
+        secret: ${BACKSTAGE_BACKEND_SECRET}
       environment: production
       providers:
         oidc:
@@ -35,16 +35,21 @@ data:
     integrations:
       github:
         - host: ${GITHUB_HOST}
-          token: ${GITHUB_TOKEN}
+          apps:
+            - appId: ${GITHUB_APP_ID}
+              clientId: ${GITHUB_APP_CLIENT_ID}
+              clientSecret: ${GITHUB_APP_CLIENT_SECRET}
+              privateKey: |
+                ${GITHUB_APP_PRIVATE_KEY}
     kubernetes:
       clusterLocatorMethods:
         - type: config
           clusters:
             - name: ${K8S_CLUSTER_NAME}
-              url: ${K8S_CLUSTER_URL}
+              url: https://kubernetes.default.svc
               authProvider: serviceAccount
               serviceAccountToken: ${token}
-              skipTLSVerify: true
+              caFile: /opt/app-root/src/kubernetes-ca/ca.crt
       customResources:
         - {group: tekton.dev, apiVersion: v1, plural: pipelines}
         - {group: tekton.dev, apiVersion: v1, plural: pipelineruns}
@@ -69,7 +74,7 @@ data:
       providers:
         github:
           cf-idp:
-            organization: ${GITHUB_ORG}
+            app: ${GITHUB_APP_ID}
             catalogPath: /catalog-info.yaml
             filters: {branch: main, repository: '${GITHUB_CATALOG_REPOSITORY_FILTER}'}
             schedule:

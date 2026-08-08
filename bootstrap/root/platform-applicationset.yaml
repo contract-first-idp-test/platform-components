@@ -155,7 +155,7 @@ spec:
               keycloak:
                 url: cf-idp-keycloak-keycloak.{{ .spec.platform.cluster.routerDomain }}
                 privateUrl: https://cf-idp-keycloak-keycloak.{{ .spec.platform.cluster.routerDomain }}
-                realm: cf-idp
+                realm: platform
         - repoURL: '{{ .spec.platform.configuration.repositoryUrl }}'
           targetRevision: '{{ .spec.platform.configuration.revision }}'
           path: components/microcks

@@ -21,7 +21,7 @@ postman:
 keycloak:
   enabled: true
   install: false
-  realm: cf-idp
+  realm: platform
 
 mongodb:
   install: true
