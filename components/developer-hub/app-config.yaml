@@ -8,6 +8,7 @@ data:
     app:
       title: Contract-First IDP
       baseUrl: ${DEVELOPER_HUB_URL}
+
     backend:
       reading:
         allow:
@@ -20,7 +21,9 @@ data:
       baseUrl: ${DEVELOPER_HUB_URL}
       cors:
         origin: ${DEVELOPER_HUB_URL}
+
     signInPage: oidc
+
     auth:
       session:
         secret: ${BACKSTAGE_BACKEND_SECRET}
@@ -32,6 +35,7 @@ data:
             clientSecret: ${KEYCLOAK_CLIENT_SECRET}
             metadataUrl: ${KEYCLOAK_BASE_URL}/realms/${KEYCLOAK_REALM}/.well-known/openid-configuration
             prompt: auto
+
     integrations:
       github:
         - host: ${GITHUB_HOST}
@@ -41,6 +45,7 @@ data:
               clientSecret: ${GITHUB_APP_CLIENT_SECRET}
               privateKey: |
                 ${GITHUB_APP_PRIVATE_KEY}
+
     kubernetes:
       clusterLocatorMethods:
         - type: config
@@ -50,46 +55,74 @@ data:
               authProvider: serviceAccount
               serviceAccountToken: ${token}
               caFile: /opt/app-root/src/kubernetes-ca/ca.crt
-      customResources:
-        - {group: tekton.dev, apiVersion: v1, plural: pipelines}
-        - {group: tekton.dev, apiVersion: v1, plural: pipelineruns}
-        - {group: tekton.dev, apiVersion: v1, plural: taskruns}
-        - {group: triggers.tekton.dev, apiVersion: v1beta1, plural: eventlisteners}
-        - {group: triggers.tekton.dev, apiVersion: v1beta1, plural: triggertemplates}
-        - {group: triggers.tekton.dev, apiVersion: v1beta1, plural: triggerbindings}
-        - {group: route.openshift.io, apiVersion: v1, plural: routes}
-        - {group: argoproj.io, apiVersion: v1alpha1, plural: applications}
-        - {group: argoproj.io, apiVersion: v1alpha1, plural: applicationsets}
-        - {group: postgres-operator.crunchydata.com, apiVersion: v1beta1, plural: postgresclusters}
-      serviceLocatorMethod: {type: multiTenant}
+              customResources:
+                - {group: tekton.dev, apiVersion: v1, plural: pipelines}
+                - {group: tekton.dev, apiVersion: v1, plural: pipelineruns}
+                - {group: tekton.dev, apiVersion: v1, plural: taskruns}
+                - {group: triggers.tekton.dev, apiVersion: v1beta1, plural: eventlisteners}
+                - {group: triggers.tekton.dev, apiVersion: v1beta1, plural: triggertemplates}
+                - {group: triggers.tekton.dev, apiVersion: v1beta1, plural: triggerbindings}
+                - {group: route.openshift.io, apiVersion: v1, plural: routes}
+                - {group: argoproj.io, apiVersion: v1alpha1, plural: applications}
+                - {group: argoproj.io, apiVersion: v1alpha1, plural: applicationsets}
+                - {group: postgres-operator.crunchydata.com, apiVersion: v1beta1, plural: postgresclusters}
+      serviceLocatorMethod:
+        type: multiTenant
+
     catalog:
       import:
         entityFilename: catalog-info.yaml
         pullRequestBranchName: backstage-integration
+
       locations:
         - type: url
           target: ${SOFTWARE_TEMPLATES_CATALOG_URL}
+
       rules:
-        - allow: [Component, System, Group, Resource, Location, Template, API, Domain]
+        - allow:
+            - Component
+            - System
+            - Group
+            - Resource
+            - Location
+            - Template
+            - API
+            - Domain
+
       providers:
         github:
+          default: null
           cf-idp:
             app: ${GITHUB_APP_ID}
             catalogPath: /catalog-info.yaml
-            filters: {branch: main, repository: '${GITHUB_CATALOG_REPOSITORY_FILTER}'}
+            filters:
+              branch: main
+              repository: '${GITHUB_CATALOG_REPOSITORY_FILTER}'
             schedule:
-              frequency: {minutes: 5}
-              timeout: {minutes: 3}
-              initialDelay: {seconds: 15}
+              frequency:
+                minutes: 5
+              timeout:
+                minutes: 3
+              initialDelay:
+                seconds: 15
+
         keycloakOrg:
+          default: null
           production:
             baseUrl: ${KEYCLOAK_BASE_URL}
             loginRealm: ${KEYCLOAK_REALM}
             realm: ${KEYCLOAK_REALM}
             clientId: ${KEYCLOAK_CLIENT_ID}
             clientSecret: ${KEYCLOAK_CLIENT_SECRET}
-            filters: {kind: [Group, User]}
+            filters:
+              kind:
+                - Group
+                - User
             schedule:
-              frequency: {minutes: 1}
-              timeout: {minutes: 1}
-              initialDelay: {seconds: 15}
+              frequency:
+                minutes: 1
+              timeout:
+                minutes: 1
+              initialDelay:
+                seconds: 15
+```
