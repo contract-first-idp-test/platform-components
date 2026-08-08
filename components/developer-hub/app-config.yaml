@@ -56,16 +56,36 @@ data:
               serviceAccountToken: ${token}
               caFile: /opt/app-root/src/kubernetes-ca/ca.crt
               customResources:
-                - {group: tekton.dev, apiVersion: v1, plural: pipelines}
-                - {group: tekton.dev, apiVersion: v1, plural: pipelineruns}
-                - {group: tekton.dev, apiVersion: v1, plural: taskruns}
-                - {group: triggers.tekton.dev, apiVersion: v1beta1, plural: eventlisteners}
-                - {group: triggers.tekton.dev, apiVersion: v1beta1, plural: triggertemplates}
-                - {group: triggers.tekton.dev, apiVersion: v1beta1, plural: triggerbindings}
-                - {group: route.openshift.io, apiVersion: v1, plural: routes}
-                - {group: argoproj.io, apiVersion: v1alpha1, plural: applications}
-                - {group: argoproj.io, apiVersion: v1alpha1, plural: applicationsets}
-                - {group: postgres-operator.crunchydata.com, apiVersion: v1beta1, plural: postgresclusters}
+                - group: tekton.dev
+                  apiVersion: v1
+                  plural: pipelines
+                - group: tekton.dev
+                  apiVersion: v1
+                  plural: pipelineruns
+                - group: tekton.dev
+                  apiVersion: v1
+                  plural: taskruns
+                - group: triggers.tekton.dev
+                  apiVersion: v1beta1
+                  plural: eventlisteners
+                - group: triggers.tekton.dev
+                  apiVersion: v1beta1
+                  plural: triggertemplates
+                - group: triggers.tekton.dev
+                  apiVersion: v1beta1
+                  plural: triggerbindings
+                - group: route.openshift.io
+                  apiVersion: v1
+                  plural: routes
+                - group: argoproj.io
+                  apiVersion: v1alpha1
+                  plural: applications
+                - group: argoproj.io
+                  apiVersion: v1alpha1
+                  plural: applicationsets
+                - group: postgres-operator.crunchydata.com
+                  apiVersion: v1beta1
+                  plural: postgresclusters
       serviceLocatorMethod:
         type: multiTenant
 
@@ -125,4 +145,3 @@ data:
                 minutes: 1
               initialDelay:
                 seconds: 15
-```
