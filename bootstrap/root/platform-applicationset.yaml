@@ -130,6 +130,11 @@ spec:
                 - op: replace
                   path: /spec/ui/ingress/host
                   value: {{ printf "apicurio-ui.%s" .spec.platform.cluster.routerDomain | quote }}
+                - op: add
+                  path: /spec/ui/env
+                  value:
+                    - name: REGISTRY_API_URL
+                      value: {{ .spec.platform.schemaRegistry.apiUrl | quote }}
       {{- else if eq .renderer "quay-bridge" }}
       source:
         kustomize:
