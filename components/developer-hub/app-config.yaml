@@ -54,7 +54,7 @@ data:
               url: https://kubernetes.default.svc
               authProvider: serviceAccount
               serviceAccountToken: ${token}
-              caFile: /opt/app-root/src/kubernetes-ca/ca.crt
+              skipTLSVerify: true
               customResources:
                 - group: tekton.dev
                   apiVersion: v1
