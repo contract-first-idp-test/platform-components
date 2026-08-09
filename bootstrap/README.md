@@ -98,8 +98,7 @@ You need:
      --from-env-file=bootstrap/secrets.env \
      --dry-run=client -o yaml | oc apply -f -
 
-   oc kustomize bootstrap/root \
-     --load-restrictor=LoadRestrictionsNone |
+   oc kustomize . |
    oc apply -f -
    ```
 

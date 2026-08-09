@@ -11,4 +11,10 @@ spec:
   applicationSet:
     extraCommandArgs:
       - --enable-policy-override
-  kustomizeBuildOptions: --load-restrictor LoadRestrictionsNone
+  resourceIgnoreDifferences:
+    resourceIdentifiers:
+      - group: ""
+        kind: ServiceAccount
+        customization:
+          jsonPointers:
+            - /imagePullSecrets

@@ -15,10 +15,10 @@ check: test
 validate: test
 
 render:
-	oc kustomize bootstrap/root --load-restrictor=LoadRestrictionsNone
+	oc kustomize .
 
 render-gitops-operator:
-	oc kustomize bootstrap/gitops/operator --load-restrictor=LoadRestrictionsNone
+	oc kustomize bootstrap/gitops/operator
 
 render-gitops-instance:
-	oc kustomize bootstrap/gitops/instance --load-restrictor=LoadRestrictionsNone
+	oc kustomize bootstrap/gitops/instance

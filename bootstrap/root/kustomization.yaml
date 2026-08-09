@@ -4,7 +4,6 @@ resources:
   - application.yaml
   - projects.yaml
   - platform-applicationset.yaml
-  - configuration
 configMapGenerator:
   - name: platform-bootstrap-settings
     namespace: openshift-gitops

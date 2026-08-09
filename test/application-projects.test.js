@@ -23,9 +23,7 @@ function documents(source) {
 }
 
 function render(relative) {
-  return documents(execFileSync('oc', [
-    'kustomize', relative, '--load-restrictor=LoadRestrictionsNone',
-  ], {cwd: root, encoding: 'utf8'}));
+  return documents(execFileSync('oc', ['kustomize', relative], {cwd: root, encoding: 'utf8'}));
 }
 
 function apiGroup(resource) {
@@ -46,7 +44,7 @@ function permitsDestination(project, server, namespace) {
 }
 
 describe('ApplicationSet inventory AppProject contracts', () => {
-  const renderedRoot = render('bootstrap/root');
+  const renderedRoot = render('.');
   const applicationSet = renderedRoot.find(resource => resource.kind === 'ApplicationSet');
   const projects = new Map(renderedRoot
     .filter(resource => resource.kind === 'AppProject')

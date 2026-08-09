@@ -38,6 +38,7 @@ The repository keeps configuration intentionally small and visible:
 | File | What you manage |
 | --- | --- |
 | [`catalog-info.yaml`](catalog-info.yaml) | The generated public platform-target contract used by Backstage and the golden paths |
+| [`kustomization.yaml`](kustomization.yaml) | The repository-root bootstrap entry point and public target Secret generator |
 | [`bootstrap/root/platform-applicationset.yaml`](bootstrap/root/platform-applicationset.yaml) | The operators and shared services selected for this target |
 | `bootstrap/secrets.env` | Ignored local credentials used to create the platform Secret |
 

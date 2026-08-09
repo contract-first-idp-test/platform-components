@@ -29,9 +29,9 @@ function parseDocuments(source) {
 }
 
 function render(relative) {
-  return parseDocuments(execFileSync('oc', [
-    'kustomize', relative, '--load-restrictor=LoadRestrictionsNone',
-  ], {cwd: root, encoding: 'utf8'}));
+  return parseDocuments(execFileSync('oc', ['kustomize', relative], {
+    cwd: root, encoding: 'utf8',
+  }));
 }
 
 function envFile(relative) {
@@ -96,7 +96,7 @@ describe('repository structure and public contracts', () => {
       'package.json', 'package-lock.json', 'jest.config.js', 'node_modules',
     ]) expect(exists(obsolete)).toBe(false);
     for (const required of [
-      'catalog-info.yaml', 'bootstrap/catalog-info.template.yaml',
+      'catalog-info.yaml', 'kustomization.yaml', 'bootstrap/catalog-info.template.yaml',
       'bootstrap/secrets.env.example',
       'bootstrap/root/platform-applicationset.yaml', 'test/platform.test.js',
       'tenants/README.md', 'test/package.json', 'test/package-lock.json',
@@ -169,9 +169,14 @@ describe('repository structure and public contracts', () => {
       'platformConfig', 'backstageBackendSecret', 'githubAppId', 'githubAppClientId',
       'githubAppClientSecret', 'githubAppPrivateKeyBase64', 'keycloakClientSecret',
     ]);
-    const configuration = YAML.parse(read('bootstrap/root/configuration/kustomization.yaml'));
+    const configuration = YAML.parse(read('kustomization.yaml'));
     expect(configuration.secretGenerator.map(item => item.name))
       .toEqual(['platform-target-config']);
+    expect(configuration.secretGenerator[0]).toMatchObject({
+      namespace: 'cf-idp-secrets', files: ['platform.yaml=catalog-info.yaml'],
+    });
+    expect(configuration.generatorOptions.disableNameSuffixHash).toBe(true);
+    expect(exists('bootstrap/root/configuration/kustomization.yaml')).toBe(false);
   });
 
   test('initializes the Quay owner before native bootstrap supplies the Bridge credential', () => {
@@ -290,13 +295,13 @@ describe('repository structure and public contracts', () => {
       type: 'url',
       target: 'PLACEHOLDER_SOFTWARE_TEMPLATES_CATALOG_URL',
     }]);
-    expect(config.catalog.providers.github['cf-idp'].filters).toEqual({
+    expect(config.catalog.providers.github.filters).toEqual({
       branch: 'main',
       repository: 'PLACEHOLDER_GITHUB_CATALOG_REPOSITORY_FILTER',
     });
-    expect(config.catalog.providers.github['cf-idp'].app)
+    expect(config.catalog.providers.github.app)
       .toBe('PLACEHOLDER_GITHUB_APP_ID');
-    expect(config.catalog.providers.github['cf-idp'].organization).toBeUndefined();
+    expect(config.catalog.providers.github.organization).toBeUndefined();
     expect(config.integrations.github[0]).toMatchObject({
       host: 'PLACEHOLDER_GITHUB_HOST',
       apps: [expect.objectContaining({
@@ -426,7 +431,7 @@ describe('repository structure and public contracts', () => {
     expect(workshop).toContain('oc apply -k bootstrap/gitops/operator');
     expect(workshop).toContain('oc apply -k bootstrap/gitops/instance');
     expect(workshop).toContain('oc create secret generic platform-secrets');
-    expect(workshop).toContain('oc kustomize bootstrap/root');
+    expect(workshop).toContain('oc kustomize .');
     expect(workshop).not.toContain('ROUTER_DOMAIN=');
     expect(workshop).not.toContain("-o jsonpath='{.status.cheURL}");
     expect(workshop).not.toContain('OpenShift Dev Spaces 3.28 therefore produces');
@@ -647,7 +652,6 @@ describe('ApplicationSet policy and rendering', () => {
   });
 
   test('renders every bootstrap and public-config boundary', () => {
-    expect(render('test/fixtures/catalog-template')).toHaveLength(1);
     expect(render('bootstrap/gitops/operator').map(item => item.kind))
       .toEqual(['Namespace', 'OperatorGroup', 'Subscription']);
 
@@ -656,8 +660,14 @@ describe('ApplicationSet policy and rendering', () => {
     expect(argo).toHaveLength(1);
     expect(argo[0].spec.applicationSet.extraCommandArgs)
       .toEqual(['--enable-policy-override']);
-    expect(argo[0].spec.kustomizeBuildOptions)
-      .toBe('--load-restrictor LoadRestrictionsNone');
+    expect(argo[0].spec.kustomizeBuildOptions).toBeUndefined();
+    expect(argo[0].spec.resourceIgnoreDifferences).toEqual({
+      resourceIdentifiers: [{
+        group: '',
+        kind: 'ServiceAccount',
+        customization: {jsonPointers: ['/imagePullSecrets']},
+      }],
+    });
     const applicationSetRoute = instance.find(item => item.kind === 'Route');
     expect(applicationSetRoute).toMatchObject({
       metadata: {name: 'openshift-gitops-applicationset-controller'},
@@ -667,8 +677,20 @@ describe('ApplicationSet policy and rendering', () => {
       },
     });
 
-    const rootResources = render('bootstrap/root');
+    const rootResources = render('.');
     expect(rootResources.filter(item => item.kind === 'Application')).toHaveLength(1);
+    const targetConfig = rootResources.find(item =>
+      item.kind === 'Secret' && item.metadata.name === 'platform-target-config');
+    expect(targetConfig).toMatchObject({
+      metadata: {namespace: 'cf-idp-secrets'},
+      type: 'Opaque',
+    });
+    expect(Object.keys(targetConfig.data)).toEqual(['platform.yaml']);
+    expect(Buffer.from(targetConfig.data['platform.yaml'], 'base64').toString())
+      .toBe(read('catalog-info.yaml'));
+    const platformRoot = rootResources.find(item =>
+      item.kind === 'Application' && item.metadata.name === 'platform-root');
+    expect(platformRoot.spec.source.path).toBe('.');
     const renderedSets = rootResources.filter(item => item.kind === 'ApplicationSet');
     expect(renderedSets).toHaveLength(1);
     expect(renderedSets[0].spec.templatePatch).toContain('realm: platform');
@@ -775,7 +797,7 @@ describe('workshop helper and credential boundary', () => {
     }
     const credentialKeys = Object.keys(envFile('bootstrap/secrets.env.example'));
     for (const relative of [
-      'catalog-info.yaml', 'bootstrap/catalog-info.template.yaml',
+      'catalog-info.yaml', 'kustomization.yaml', 'bootstrap/catalog-info.template.yaml',
       'bootstrap/root/platform-applicationset.yaml',
     ]) {
       for (const key of credentialKeys) expect(read(relative)).not.toContain(key);

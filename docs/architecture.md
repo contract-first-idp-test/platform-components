@@ -14,10 +14,13 @@ The controller accepts the per-ApplicationSet `create-update` policy. Generated 
 no resource-deletion finalizer, and inventory removal remains separate from explicit uninstall.
 Retries and self-healing drive all-at-once convergence; the inventory does not claim staged order.
 
-`bootstrap/root/kustomization.yaml` contains the two bootstrap coordinates needed before the
-ApplicationSet can read the catalog. Kustomize injects them into the root Application, the Git file
-generator, and AppProject source allowlists. The configuration helper changes only those literals
-and the root catalog entity.
+The repository-root `kustomization.yaml` is the entry point for both the initial local bootstrap and
+the Argo-managed `platform-root` Application. It includes `bootstrap/root` and generates
+`platform-target-config` directly from the root `catalog-info.yaml`, so normal Kustomize load
+restrictions remain enabled. `bootstrap/root/kustomization.yaml` contains the two bootstrap
+coordinates needed before the ApplicationSet can read the catalog. Kustomize injects them into the
+root Application, the Git file generator, and AppProject source allowlists. The configuration
+helper changes only those literals and the root catalog entity.
 
 The public target is materialized into `platform-target-config`. The Keycloak realm is `platform`.
 The standard human groups are `platform-maintainers`, `domain-maintainers`,
@@ -51,3 +54,8 @@ The public target also carries the two non-secret GitOps webhook endpoints. A de
 exposes only the ApplicationSet controller's `webhook` service port; the standard Argo CD server
 Route supplies the Application webhook. Domain and System golden paths attach both push webhooks,
 with polling retained as recovery.
+
+OpenShift owns the generated registry references under `ServiceAccount.imagePullSecrets`, so the
+OpenShift GitOps instance ignores that field globally for ServiceAccounts. CF-IDP still owns
+`ServiceAccount.secrets` where Tekton needs registry credentials and
+`Deployment.spec.template.spec.imagePullSecrets` where workloads need runtime pull credentials.

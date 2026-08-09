@@ -39,7 +39,7 @@ spec:
   source:
     repoURL: https://github.com/contract-first-idp/platform-components.git
     targetRevision: main
-    path: bootstrap/root
+    path: .
   syncPolicy:
     automated:
       prune: true
