@@ -10,6 +10,10 @@ the workshop helper in a temporary repository with mocked cluster discovery, ver
 does not edit the inventory, and renders the GitOps operator, GitOps instance, and repository-root
 Kustomizations with normal load restrictions.
 
+The suite supports both the pristine upstream distribution, where root `catalog-info.yaml` has not
+been generated, and a configured workshop fork where that file is committed. When present, the
+root catalog is validated as the platform-target contract.
+
 ApplicationSet expansion remains a live-controller verification because local validation does not
 reimplement the OpenShift GitOps controller.
 

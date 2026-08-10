@@ -4,6 +4,7 @@ const path = require('node:path');
 const YAML = require('yaml');
 const {repositoryRoot: root} = require('./helpers/paths');
 const {read, exists, parseDocuments} = require('./helpers/manifests');
+const {createConfiguredRepository} = require('./helpers/configured-repository');
 
 function walk(directory, files = []) {
   for (const entry of fs.readdirSync(directory, {withFileTypes: true})) {
@@ -22,6 +23,30 @@ function envKeys(relative) {
     .map(line => line.slice(0, line.indexOf('=')));
 }
 
+function expectConfiguredPlatformTarget(repository) {
+  const source = read(repository, 'catalog-info.yaml');
+  const catalog = YAML.parse(source);
+  expect(source).not.toContain('@@');
+  expect(catalog).toMatchObject({
+    apiVersion: 'backstage.io/v1alpha1',
+    kind: 'Resource',
+    spec: {
+      owner: 'group:default/platform-maintainers',
+      type: 'contract-first-idp-target',
+      platform: {
+        configuration: {valuesPath: 'catalog-info.yaml'},
+        tenantAdmission: {path: 'tenants'},
+        cluster: {}, argocd: {}, dependencies: {}, schemaRegistry: {},
+        registry: {}, services: {}, build: {},
+      },
+    },
+  });
+  const configuration = catalog.spec.platform.configuration;
+  expect(catalog.metadata.annotations['github.com/project-slug'])
+    .toBe(`${configuration.organization}/${configuration.repository}`);
+  expect(catalog.spec.platform.tenantAdmission.branch).toBe(configuration.revision);
+}
+
 describe('fork-ready repository distribution', () => {
   test('all committed shell and static YAML sources parse', () => {
     const files = walk(root);
@@ -36,7 +61,7 @@ describe('fork-ready repository distribution', () => {
     }
   });
 
-  test('has one supported distribution layout with no configured root target', () => {
+  test('supports both pristine distribution and configured-fork layouts', () => {
     for (const obsolete of [
       'argocd', 'profiles', 'targets', 'tests', 'scripts', 'configuration',
       path.join('config', 'distribution.env'), 'bootstrap/source.env',
@@ -57,13 +82,22 @@ describe('fork-ready repository distribution', () => {
     ]) expect({required, present: exists(root, required)})
       .toEqual({required, present: true});
 
-    expect(exists(root, 'catalog-info.yaml')).toBe(false);
+    if (exists(root, 'catalog-info.yaml')) expectConfiguredPlatformTarget(root);
     expect(exists(root, 'test/platform.test.js')).toBe(false);
     expect(exists(root, 'tenants/kustomization.yaml')).toBe(false);
     expect(read(root, '.gitignore')).not.toMatch(/^\/?catalog-info\.yaml$/m);
     expect(YAML.parse(read(root, 'test/package.json'))).toMatchObject({
       name: 'platform-components-tests', private: true,
     });
+  });
+
+  test('accepts the configured root target committed by workshop setup', () => {
+    const checkout = createConfiguredRepository();
+    try {
+      expectConfiguredPlatformTarget(checkout.root);
+    } finally {
+      checkout.cleanup();
+    }
   });
 
   test('keeps local secrets ignored and credential values out of public files', () => {
