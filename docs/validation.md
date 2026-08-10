@@ -1,5 +1,7 @@
 # Validation
 
+[Back to the repository overview](../README.md)
+
 Run `make test` from the repository root. Its direct equivalent is `npm ci --prefix test` followed
 by `npm test --prefix test`. All Node and Jest tooling is scoped under `test/`; the repository
 itself is not an npm package. The suite checks shell syntax and the

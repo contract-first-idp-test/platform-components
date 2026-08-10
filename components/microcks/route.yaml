@@ -3,8 +3,10 @@ kind: Route
 metadata:
   name: microcks
   namespace: microcks
+  annotations:
+    platform.contract-first.io/router-domain: example.invalid
 spec:
-  host: microcks.example.invalid
+  host: microcks.invalid
   to:
     kind: Service
     name: microcks

@@ -5,8 +5,11 @@ metadata:
   namespace: keycloak
   annotations:
     argocd.argoproj.io/sync-wave: '0'
+    platform.contract-first.io/router-domain: example.invalid
 spec:
   instances: 1
+  hostname:
+    hostname: cf-idp-keycloak-keycloak.invalid
   db:
     vendor: postgres
     host: cf-idp-keycloak-db-primary

@@ -4,3 +4,21 @@ resources:
   - namespace.yaml
   - oauth-secret.yaml
   - checluster.yaml
+replacements:
+  - source:
+      group: org.eclipse.che
+      version: v2
+      kind: CheCluster
+      name: devspaces
+      fieldPath: metadata.annotations.[platform.contract-first.io/router-domain]
+    targets:
+      - select:
+          group: org.eclipse.che
+          version: v2
+          kind: CheCluster
+          name: devspaces
+        fieldPaths:
+          - spec.networking.hostname
+        options:
+          delimiter: .
+          index: 1

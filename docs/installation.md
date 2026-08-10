@@ -1,5 +1,7 @@
 # Workshop installation
 
+[Back to the repository overview](../README.md)
+
 Set up a workshop-ready Contract-First IDP on OpenShift with a small bootstrap and a declarative
 GitOps handoff. You will configure this repository for one cluster, add the external credentials,
 and start OpenShift GitOps. The public workshop configuration lives in the root
@@ -8,7 +10,7 @@ and start OpenShift GitOps. The public workshop configuration lives in the root
 The happy path is: clone, configure the target, configure GitHub, commit, bootstrap GitOps, and
 start the platform.
 
-## Before you begin
+## Prerequisites
 
 You need:
 
@@ -110,14 +112,14 @@ You need:
    oc get applications.argoproj.io -n openshift-gitops
    ```
 
-## What's next?
+## After Installation
 
 Open Developer Hub using `spec.platform.services.developerHub.url` from `catalog-info.yaml`. Sign in
 through Keycloak with `DEMO_USER_USERNAME` and `DEMO_USER_PASSWORD` from your local
 `bootstrap/secrets.env`, then explore the available Software Templates.
 
-For a deeper installation check, see [Validation](../docs/validation.md#installation-validation).
-For ongoing changes and credential rotation, see [Operations](../docs/operations.md).
+For a deeper installation check, see [Validation](validation.md#installation-validation).
+For ongoing changes and credential rotation, see [Operations](operations.md).
 
 ## Configure the CF-IDP GitHub App
 
@@ -178,7 +180,7 @@ cluster-specific URLs from the generated `catalog-info.yaml`.
 CF-IDP uses one GitHub App for Developer Hub platform automation and Dev Spaces developer Git
 authorization. Developer Hub login remains Keycloak-based.
 Do not create a separate GitHub OAuth App for Dev Spaces. See
-[Architecture](../docs/architecture.md) for the token and catalog-discovery details.
+[Architecture](architecture.md) for the token and catalog-discovery details.
 
 ## Onboard another GitHub organization
 
@@ -199,16 +201,16 @@ and install the same App there.
 The default workshop works without inventory changes. The committed
 `bootstrap/root/platform-applicationset.yaml` is the operator and shared-service inventory for this
 target. Before the first installation, you may remove entries that are unsuitable for the cluster;
-review the dependency comments beside those entries and the [component inventory](../docs/component-inventory.md).
+review the dependency comments beside those entries and the [component inventory](component-inventory.md).
 
 Adding an ordinary Kustomize-based component requires its reusable base and a compact inventory
 entry; it does not require a change to `configure-workshop.sh`. Removing an entry after installation
-is not an uninstall procedure. See [Operations](../docs/operations.md) before removing deployed
+is not an uninstall procedure. See [Operations](operations.md) before removing deployed
 components.
 
 ## Troubleshooting and further validation
 
 The install flow intentionally stops after the GitOps handoff and one optional Application query.
-Use [Validation](../docs/validation.md) for deeper Developer Hub, Dev Spaces, External Secrets, and
-ApplicationSet checks. Use [Operations](../docs/operations.md) for credential rotation,
+Use [Validation](validation.md) for deeper Developer Hub, Dev Spaces, External Secrets, and
+ApplicationSet checks. Use [Operations](operations.md) for credential rotation,
 reconciliation changes, and component lifecycle guidance.

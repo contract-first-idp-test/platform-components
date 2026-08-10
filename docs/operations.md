@@ -1,6 +1,8 @@
 # Operations
 
-Use the copyable installation and reconciliation workflow in `bootstrap/README.md`.
+[Back to the repository overview](../README.md)
+
+Use the copyable [installation and reconciliation workflow](installation.md).
 
 Public target changes are normal Git changes to `catalog-info.yaml`, the root bootstrap
 coordinates, or the ApplicationSet inventory. Commit and push them before asking Argo CD to
@@ -9,7 +11,7 @@ reconcile. Credential rotation updates ignored `bootstrap/secrets.env`, recreate
 
 ## Developer Hub and Dev Spaces GitHub App rotation
 
-The [workshop App procedure](../bootstrap/README.md#configure-the-cf-idp-github-app) defines the single
+The [workshop App procedure](installation.md#configure-the-cf-idp-github-app) defines the single
 credential contract. When rotating it, generate the replacement client secret and/or private key in
 the existing GitHub App, update `GITHUB_APP_CLIENT_SECRET` and/or
 `GITHUB_APP_PRIVATE_KEY_BASE64` in ignored `bootstrap/secrets.env`, and recreate

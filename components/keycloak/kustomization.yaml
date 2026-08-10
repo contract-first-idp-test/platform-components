@@ -7,3 +7,38 @@ resources:
   - service-route.yaml
   - keycloak.yaml
   - realm.yaml
+replacements:
+  - source:
+      group: k8s.keycloak.org
+      version: v2alpha1
+      kind: Keycloak
+      name: cf-idp-keycloak
+      fieldPath: metadata.annotations.[platform.contract-first.io/router-domain]
+    targets:
+      - select:
+          group: k8s.keycloak.org
+          version: v2alpha1
+          kind: Keycloak
+          name: cf-idp-keycloak
+        fieldPaths:
+          - spec.hostname.hostname
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      group: route.openshift.io
+      version: v1
+      kind: Route
+      name: cf-idp-keycloak
+      fieldPath: metadata.annotations.[platform.contract-first.io/router-domain]
+    targets:
+      - select:
+          group: route.openshift.io
+          version: v1
+          kind: Route
+          name: cf-idp-keycloak
+        fieldPaths:
+          - spec.host
+        options:
+          delimiter: .
+          index: 1

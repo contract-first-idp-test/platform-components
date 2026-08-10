@@ -3,6 +3,8 @@ kind: CheCluster
 metadata:
   name: devspaces
   namespace: openshift-devspaces
+  annotations:
+    platform.contract-first.io/router-domain: example.invalid
 spec:
   components:
     cheServer: {debug: false, logLevel: INFO}
@@ -31,6 +33,7 @@ spec:
     github:
       - {secretName: github-oauth-config, endpoint: https://github.com}
   networking:
+    hostname: devspaces.invalid
     auth:
       gateway:
         configLabels: {app: che, component: che-gateway-config}

@@ -4,6 +4,7 @@ metadata:
   name: quay
   annotations:
     argocd.argoproj.io/sync-wave: '0'
+    platform.contract-first.io/router-domain: example.invalid
 spec:
   clusterID: openshift
   credentialsSecret:
@@ -11,5 +12,4 @@ spec:
     namespace: openshift-operators
     key: token
   insecureRegistry: false
-  # Required CRD scalar; the ApplicationSet replaces this sentinel inline.
-  quayHostname: https://replace-by-target.invalid
+  quayHostname: https://registry-quay-quay.invalid

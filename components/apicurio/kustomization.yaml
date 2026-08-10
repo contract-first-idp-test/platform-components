@@ -1,3 +1,39 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources: [namespace.yaml, db-init.yaml, postgres.yaml, apicurio-registry.yaml]
+replacements:
+  - source:
+      group: registry.apicur.io
+      version: v1
+      kind: ApicurioRegistry3
+      name: apicurio-registry
+      fieldPath: metadata.annotations.[platform.contract-first.io/router-domain]
+    targets:
+      - select:
+          group: registry.apicur.io
+          version: v1
+          kind: ApicurioRegistry3
+          name: apicurio-registry
+        fieldPaths:
+          - spec.app.ingress.host
+          - spec.ui.ingress.host
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      group: registry.apicur.io
+      version: v1
+      kind: ApicurioRegistry3
+      name: apicurio-registry
+      fieldPath: spec.app.ingress.host
+    targets:
+      - select:
+          group: registry.apicur.io
+          version: v1
+          kind: ApicurioRegistry3
+          name: apicurio-registry
+        fieldPaths:
+          - spec.ui.env.[name=REGISTRY_API_URL].value
+        options:
+          delimiter: /
+          index: 2

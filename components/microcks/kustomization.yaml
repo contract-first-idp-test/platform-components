@@ -3,6 +3,112 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - external-secret.yaml
-  # Workloads are rendered by the official Microcks chart. This source only
-  # owns companion resources that the chart consumes.
   - route.yaml
+  - config.yaml
+  - mongodb-init-config.yaml
+  - mongodb-pvc.yaml
+  - service.yaml
+  - grpc-service.yaml
+  - postman-service.yaml
+  - mongodb-service.yaml
+  - deployment.yaml
+  - postman-deployment.yaml
+  - mongodb-deployment.yaml
+replacements:
+  - source:
+      group: route.openshift.io
+      version: v1
+      kind: Route
+      name: microcks
+      fieldPath: metadata.annotations.[platform.contract-first.io/router-domain]
+    targets:
+      - select:
+          group: route.openshift.io
+          version: v1
+          kind: Route
+          name: microcks
+        fieldPaths:
+          - spec.host
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      kind: Deployment
+      name: microcks
+      fieldPath: metadata.annotations.[platform.contract-first.io/router-domain]
+    targets:
+      - select:
+          kind: Deployment
+          name: microcks
+        fieldPaths:
+          - spec.template.spec.containers.[name=spring].env.[name=KEYCLOAK_URL].value
+          - spec.template.spec.containers.[name=spring].env.[name=KEYCLOAK_PUBLIC_URL].value
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      kind: ConfigMap
+      name: microcks-config
+      fieldPath: metadata.annotations.[platform.contract-first.io/router-domain]
+    targets:
+      - select:
+          kind: ConfigMap
+          name: microcks-config
+        fieldPaths:
+          - metadata.annotations.[platform.contract-first.io/microcks-host]
+          - metadata.annotations.[platform.contract-first.io/microcks-ws-host]
+        options:
+          delimiter: .
+          index: 1
+  - source:
+      kind: ConfigMap
+      name: microcks-config
+      fieldPath: metadata.annotations.[platform.contract-first.io/microcks-host]
+    targets:
+      - select:
+          kind: ConfigMap
+          name: microcks-config
+        fieldPaths:
+          - metadata.annotations.[platform.contract-first.io/validation-resource-property]
+        options:
+          delimiter: /
+          index: 2
+  - source:
+      kind: ConfigMap
+      name: microcks-config
+      fieldPath: metadata.annotations.[platform.contract-first.io/microcks-ws-host]
+    targets:
+      - select:
+          kind: ConfigMap
+          name: microcks-config
+        fieldPaths:
+          - metadata.annotations.[platform.contract-first.io/async-ws-property]
+        options:
+          delimiter: =
+          index: 1
+  - source:
+      kind: ConfigMap
+      name: microcks-config
+      fieldPath: metadata.annotations.[platform.contract-first.io/validation-resource-property]
+    targets:
+      - select:
+          kind: ConfigMap
+          name: microcks-config
+        fieldPaths:
+          - data.[application.properties]
+        options:
+          delimiter: "\n"
+          index: 8
+  - source:
+      kind: ConfigMap
+      name: microcks-config
+      fieldPath: metadata.annotations.[platform.contract-first.io/async-ws-property]
+    targets:
+      - select:
+          kind: ConfigMap
+          name: microcks-config
+        fieldPaths:
+          - data.[features.properties]
+        options:
+          delimiter: "\n"
+          index: 14

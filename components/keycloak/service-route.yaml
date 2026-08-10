@@ -23,7 +23,9 @@ metadata:
   namespace: keycloak
   annotations:
     argocd.argoproj.io/sync-wave: '5'
+    platform.contract-first.io/router-domain: example.invalid
 spec:
+  host: cf-idp-keycloak-keycloak.invalid
   to:
     kind: Service
     name: cf-idp-keycloak

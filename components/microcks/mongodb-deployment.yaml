@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "microcks-mongodb"
+  labels:
+    app: "microcks"
+    container: mongodb
+    group: microcks
+
+  annotations:
+
+
+  creationTimestamp:
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "microcks"
+      deploymentconfig: mongodb
+      container: mongodb
+      group: microcks
+  template:
+    metadata:
+      labels:
+        app: "microcks"
+        deploymentconfig: mongodb
+        container: mongodb
+        group: microcks
+
+      annotations:
+
+    spec:
+      containers:
+      - name: mongodb
+        image: library/mongo:4.4.29
+        args: ["--dbpath","/var/lib/mongodb/data"]
+        ports:
+        - name: mongodb
+          containerPort: 27017
+          protocol: TCP
+        readinessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 3
+          exec:
+            command:
+            - "/bin/sh"
+            - "-i"
+            - "-c"
+            - mongo 127.0.0.1:27017/$MONGO_INITDB_DATABASE -u $MONGODB_USER -p $MONGODB_PASSWORD
+              --eval="quit()"
+        livenessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 30
+          tcpSocket:
+            port: 27017
+        env:
+        - name: MONGODB_USER
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: "microcks-mongodb-connection"
+        - name: MONGODB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: "microcks-mongodb-connection"
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: adminUsername
+              name: "microcks-mongodb-connection"
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: adminPassword
+              name: "microcks-mongodb-connection"
+        - name: MONGO_INITDB_DATABASE
+          value: "microcks"
+        resources:
+          limits:
+            memory: 512Mi
+          requests:
+            cpu: 250m
+            memory: 256Mi
+        volumeMounts:
+        - name: "microcks-mongodb-data"
+          mountPath: "/var/lib/mongodb/data"
+        - name: custom-init-scripts
+          mountPath: /docker-entrypoint-initdb.d
+        terminationMessagePath: "/dev/termination-log"
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          capabilities: {}
+          privileged: false
+      volumes:
+      - name: "microcks-mongodb-data"
+        persistentVolumeClaim:
+          claimName: "microcks-mongodb"
+      - name: custom-init-scripts
+        configMap:
+          name: "microcks-mongodb-init"
+      restartPolicy: Always
+      dnsPolicy: ClusterFirst

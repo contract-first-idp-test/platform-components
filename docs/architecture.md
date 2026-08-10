@@ -1,18 +1,37 @@
 # Architecture
 
-The root `catalog-info.yaml` is the public platform-target contract. Backstage, the golden paths,
+[Back to the repository overview](../README.md)
+
+## Platform target contract
+
+After `bootstrap/configure-workshop.sh` configures a fork, the generated root `catalog-info.yaml` is
+the public platform-target contract. Backstage, the golden paths,
 ESO consumers, and the platform ApplicationSet all read the same schema under `spec.platform`.
 All golden-path-managed repositories use `/catalog-info.yaml` as their primary catalog descriptor,
 and one App-scoped GitHub catalog provider discovers that path throughout repositories visible to
 the configured CF-IDP GitHub App installations.
 
+The current golden-path contract remains under `spec.platform`, including repository, tenant
+admission, cluster, dependency, Schema Registry, registry, service, and build facts. Its
+`valuesPath` is `catalog-info.yaml`, so Domain activation reads the root entity from the platform
+repository. The target also carries public Argo CD webhook endpoints and the Dev Spaces URL and
+GitHub callback derived from the router domain. The Dev Spaces component applies the declared URL
+to `CheCluster.spec.networking.hostname`, so the callback is known before installation rather than
+depending on an Operator-selected hostname.
+
+## GitOps reconciliation
+
 `bootstrap/root/platform-applicationset.yaml` is the operational inventory. Its matrix combines the
 root catalog file with a compact static Application list. The shared template supplies the target
-repository, revision, destination, synchronization, and retry behavior. Explicit template-patch
-branches provide inline Apicurio ingress hosts, the Quay Bridge hostname, and Microcks Helm values.
+repository, revision, destination, synchronization, retry behavior, and one generic router-domain
+annotation. Every platform operator and component is a Kustomize root; component-local replacements
+interpret that annotation for target-specific hosts and URLs. The only non-Kustomize source branch
+preserves tenant admission's existing directory rendering behavior.
 The controller accepts the per-ApplicationSet `create-update` policy. Generated Applications have
 no resource-deletion finalizer, and inventory removal remains separate from explicit uninstall.
 Retries and self-healing drive all-at-once convergence; the inventory does not claim staged order.
+
+## Bootstrap and configuration
 
 The repository-root `kustomization.yaml` is the entry point for both the initial local bootstrap and
 the Argo-managed `platform-root` Application. It includes `bootstrap/root` and generates
@@ -33,12 +52,24 @@ entities. Stable realm and client identifiers are kept directly in their consumi
 Credentials remain local in ignored `bootstrap/secrets.env`, are copied to `platform-secrets`, and
 flow through ESO to workload-local Secrets.
 
+The activated workshop has two source Secrets in `cf-idp-secrets`: `platform-target-config`,
+generated from public `catalog-info.yaml` as `platform.yaml`; and `platform-secrets`, created from
+ignored `bootstrap/secrets.env`. Separate `ClusterSecretStore/cf-idp-config` and
+`ClusterSecretStore/cf-idp-secrets` contracts let namespace-local ExternalSecrets combine public
+target facts with credentials while workloads depend only on stable local Secret names.
+
+Components that require public render-time scalar values receive the router domain through a
+generic ApplicationSet Kustomize annotation. Component-local replacements derive hosts and URLs;
+credentials never enter those transformations.
+
+## Identity and integrations
+
 Developer Hub and Dev Spaces are currently configured against one CF-IDP GitHub App without
 merging their token semantics: Developer Hub receives the App ID, client credentials, and
 ESO-decoded private key for installation-token automation; Dev Spaces receives only the client
 credentials for per-user GitHub authorization. Human Developer Hub authentication remains
 Keycloak, and the App private key never enters the Dev Spaces namespace. See the
-[authoritative App setup](../bootstrap/README.md#configure-the-cf-idp-github-app).
+[authoritative App setup](installation.md#configure-the-cf-idp-github-app).
 
 The public target also declares the released Software Templates repository and revision. Developer
 Hub reads that dependency to build one revision-aware catalog location, so an installer does not

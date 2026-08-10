@@ -1,99 +1,79 @@
 # Contract-First IDP Platform Components
 
-Set up a workshop-ready Internal Developer Platform on OpenShift with one GitOps repository.
+Install the shared OpenShift services that support the Contract-First IDP workshop. This is the
+starting repository for workshop installers and platform engineers evaluating or operating the
+platform.
 
-This is the place to start if you are installing Contract-First IDP. Fork this repository, choose
-the platform components you want, provide the workshop credentials, and let OpenShift GitOps
-reconcile the installation.
+## Overview
 
-## Start here
+The repository bootstraps OpenShift GitOps and declares the operators and shared services used by
+Developer Hub, the golden paths, tenant workloads, API publication, and managed Resources. A
+configured fork is the source of truth for one workshop target; Argo CD reconciles that Git state
+onto the cluster.
 
-- **Installing the workshop:** follow the [workshop installation](bootstrap/README.md).
-- **Reviewing the platform:** see the [component inventory](docs/component-inventory.md) and
-  [architecture](docs/architecture.md).
-- **Running the platform:** use the [operations guide](docs/operations.md).
-- **Contributing a change:** start with [validation](docs/validation.md).
+Installers normally need only this repository. Released `software-templates` and
+`developer-charts` dependencies are consumed from the versions recorded in the target contract.
 
-Installers normally need only this repository. The released `software-templates` and
-`developer-charts` dependencies are consumed for you; sibling checkouts are needed only by
-contributors testing coordinated source changes.
+## Getting Started
 
-## The installation in six steps
+Start with the [workshop installation guide](docs/installation.md). It contains prerequisites,
+GitHub App setup, exact commands, validation, and troubleshooting.
 
-The [complete workshop guide](bootstrap/README.md) includes the prerequisites, exact commands, and
-the GitHub App reference. The happy path is:
+The minimal installation path is:
 
-1. Fork and clone this repository.
-2. Log in to OpenShift and run `bootstrap/configure-workshop.sh` to generate the public platform
-   target.
-3. Configure and install the CF-IDP GitHub App, ensure the standard teams exist, and populate the
-   ignored credentials file.
-4. Optionally customize the inventory, then commit and push the workshop configuration.
-5. Bootstrap OpenShift GitOps.
-6. Create the cluster credentials Secret and apply the root bootstrap; Argo CD owns convergence
-   from there.
+1. Fork and clone this repository, log in to OpenShift, and run
+   `./bootstrap/configure-workshop.sh`.
+2. Configure and install the CF-IDP GitHub App, create the standard teams, and populate the
+   ignored `bootstrap/secrets.env` file.
+3. Commit and push the generated public target configuration.
+4. Install OpenShift GitOps, create the cluster credential Secret, and apply the root
+   Kustomization.
+5. Let Argo CD reconcile the selected platform services.
 
-The repository keeps configuration intentionally small and visible:
+## Platform Services
 
-| File | What you manage |
+The default target includes OpenShift GitOps, Pipelines, Developer Hub, Dev Spaces, Quay, Schema
+Registry, identity, External Secrets, and supported Resource operators. See the
+[component inventory](docs/component-inventory.md) for delivery methods and pinned versions.
+
+## Architecture
+
+The configured root `catalog-info.yaml` is the public platform-target contract. The root
+ApplicationSet combines that contract with the selected inventory, while credentials remain in a
+separate cluster Secret. See [Architecture](docs/architecture.md) for the ownership, discovery,
+identity, and configuration contracts.
+
+## Documentation
+
+- [Installation](docs/installation.md)
+- [Architecture](docs/architecture.md)
+- [Component inventory](docs/component-inventory.md)
+- [Operations](docs/operations.md)
+- [Validation and development](docs/validation.md)
+
+## Repository Structure
+
+| Path | Purpose |
 | --- | --- |
-| [`catalog-info.yaml`](catalog-info.yaml) | The generated public platform-target contract used by Backstage and the golden paths |
-| [`kustomization.yaml`](kustomization.yaml) | The repository-root bootstrap entry point and public target Secret generator |
-| [`bootstrap/root/platform-applicationset.yaml`](bootstrap/root/platform-applicationset.yaml) | The operators and shared services selected for this target |
-| `bootstrap/secrets.env` | Ignored local credentials used to create the platform Secret |
+| `bootstrap/` | Configuration helper and OpenShift GitOps bootstrap manifests |
+| `bootstrap/root/platform-applicationset.yaml` | Selected operators and shared services |
+| `components/` | Kustomize components for platform services |
+| `operators/` | Operator installation and configuration |
+| `tenants/` | GitOps admission entries for tenant Domains |
+| `docs/` | Installation, architecture, operations, inventory, and validation guides |
+| `test/` | Deterministic repository and rendered-manifest tests |
 
-There are no hidden profiles or generated target directories. The committed ApplicationSet is the
-inventory that Argo CD creates and keeps reconciled.
+After configuration, the main files owned by an installer are the generated `catalog-info.yaml`,
+the root `kustomization.yaml`, the ApplicationSet inventory, and the ignored
+`bootstrap/secrets.env` credential file.
 
-## What this repository provides
+## Development
 
-The default workshop inventory includes the platform services behind the developer experience:
-OpenShift GitOps, Pipelines, Developer Hub, Dev Spaces, Quay, Schema Registry, identity, secrets,
-and supported Resource operators. See the [component inventory](docs/component-inventory.md) for
-the exact channels and versions.
-
-Once installed:
-
-- Developer Hub discovers repository-root `catalog-info.yaml` descriptors;
-- golden paths create reviewable repositories and pull requests instead of writing to the cluster;
-- Argo CD combines tenant intent with released charts and reconciles OpenShift resources;
-- platform credentials remain in the cluster, outside public catalog contracts.
-
-The workshop identity contract uses realm `platform`, with `platform-maintainers` owning platform
-capabilities and `domain-maintainers` owning tenant entities. Developer Hub and Dev Spaces are
-currently configured against one CF-IDP GitHub App: Developer Hub uses installation credentials for
-machine automation, while Dev Spaces uses its client credentials to authorize each GitHub user.
-Developer Hub human sign-in stays on Keycloak. The
-[workshop installation](bootstrap/README.md#configure-the-cf-idp-github-app) is the authoritative App
-creation and credential-mapping procedure.
-
-The released implementation paths are `domain/environment`, `system/environment`, `api/openapi`,
-`component/openjdk`, and `resource/postgresql` under `developer-charts/charts`. Every repository
-created by a golden path keeps its primary Backstage entity at `/catalog-info.yaml`, making
-discovery and ownership predictable.
-
-## Contributing
-
-The deterministic test suite requires Node.js and npm, but workshop installation does not:
+Run the deterministic validation suite from the repository root:
 
 ```bash
 make test
 ```
 
-The direct equivalent is:
-
-```bash
-npm ci --prefix test
-npm test --prefix test
-```
-
-All test tooling lives under `test/`; this repository itself is not an npm package. `make check`
-is an alias for `make test`.
-
-## More documentation
-
-- [Workshop installation](bootstrap/README.md)
-- [Architecture](docs/architecture.md)
-- [Component inventory](docs/component-inventory.md)
-- [Operations](docs/operations.md)
-- [Workshop target contract](docs/workshop-target.md)
+The direct equivalent is `npm ci --prefix test` followed by `npm test --prefix test`. Sibling
+checkouts are needed only when validating coordinated source changes across all three projects.

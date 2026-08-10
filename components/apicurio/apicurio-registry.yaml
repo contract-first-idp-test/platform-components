@@ -5,6 +5,7 @@ metadata:
   namespace: apicurio
   annotations:
     argocd.argoproj.io/sync-wave: '0'
+    platform.contract-first.io/router-domain: example.invalid
 spec:
   app:
     storage:
@@ -18,16 +19,17 @@ spec:
             key: password
     ingress:
       enabled: true
-      # Required CRD scalar; the ApplicationSet replaces this sentinel inline.
-      host: replace-by-target.invalid
+      host: apicurio.invalid
       ingressClassName: openshift-default
       annotations:
         route.openshift.io/termination: edge
   ui:
+    env:
+      - name: REGISTRY_API_URL
+        value: https://replace.invalid/apis/registry/v3
     ingress:
       enabled: true
-      # Required CRD scalar; the ApplicationSet replaces this sentinel inline.
-      host: replace-by-target.invalid
+      host: apicurio-ui.invalid
       ingressClassName: openshift-default
       annotations:
         route.openshift.io/termination: edge

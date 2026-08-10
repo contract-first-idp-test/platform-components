@@ -3,3 +3,21 @@ kind: Kustomization
 resources:
   - bootstrap-token-secret.yaml
   - quay-integration.yaml
+replacements:
+  - source:
+      group: quay.redhat.com
+      version: v1
+      kind: QuayIntegration
+      name: quay
+      fieldPath: metadata.annotations.[platform.contract-first.io/router-domain]
+    targets:
+      - select:
+          group: quay.redhat.com
+          version: v1
+          kind: QuayIntegration
+          name: quay
+        fieldPaths:
+          - spec.quayHostname
+        options:
+          delimiter: .
+          index: 1

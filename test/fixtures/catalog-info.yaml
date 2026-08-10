@@ -5,7 +5,7 @@ metadata:
   title: Contract-First IDP Workshop Target
   description: Public repository and cluster contract for this platform target.
   annotations:
-    github.com/project-slug: "contract-first-idp-test/platform-components"
+    github.com/project-slug: "fixture-org/platform-components"
 spec:
   owner: group:default/platform-maintainers
   type: contract-first-idp-target
@@ -14,26 +14,26 @@ spec:
       version: v1.0.0
     configuration:
       host: "github.com"
-      organization: "contract-first-idp-test"
+      organization: "fixture-org"
       repository: "platform-components"
-      repositoryUrl: "https://github.com/contract-first-idp-test/platform-components.git"
-      revision: "main"
+      repositoryUrl: "https://github.com/fixture-org/platform-components.git"
+      revision: "test"
       valuesPath: catalog-info.yaml
     tenantAdmission:
-      branch: "main"
+      branch: "test"
       path: tenants
     target:
       name: workshop
     cluster:
-      name: "cluster-wwtmx-45h9h"
-      apiUrl: "https://api.cluster-wwtmx.dyn.redhatworkshops.io:6443"
-      routerDomain: "apps.cluster-wwtmx.dyn.redhatworkshops.io"
+      name: "fixture"
+      apiUrl: "https://api.fixture.example:6443"
+      routerDomain: "apps.fixture.example"
     argocd:
       namespace: openshift-gitops
       destinationServer: https://kubernetes.default.svc
       webhooks:
-        application: "https://openshift-gitops-server-openshift-gitops.apps.cluster-wwtmx.dyn.redhatworkshops.io/api/webhook"
-        applicationSet: "https://openshift-gitops-applicationset-controller-openshift-gitops.apps.cluster-wwtmx.dyn.redhatworkshops.io/api/webhook"
+        application: "https://openshift-gitops-server-openshift-gitops.apps.fixture.example/api/webhook"
+        applicationSet: "https://openshift-gitops-applicationset-controller-openshift-gitops.apps.fixture.example/api/webhook"
     dependencies:
       softwareTemplates:
         host: github.com
@@ -49,16 +49,16 @@ spec:
       repositoryUrl: https://github.com/contract-first-idp-test/developer-charts.git
       revision: v1.0.0
     schemaRegistry:
-      apiUrl: "https://apicurio.apps.cluster-wwtmx.dyn.redhatworkshops.io/apis/registry/v3"
-      uiUrl: "https://apicurio-ui.apps.cluster-wwtmx.dyn.redhatworkshops.io"
+      apiUrl: "https://apicurio.apps.fixture.example/apis/registry/v3"
+      uiUrl: "https://apicurio-ui.apps.fixture.example"
     spectralRules:
       repositoryUrl: https://github.com/contract-first-idp/spectral-rules.git
       revision: f2a1e6ab9f428eb822c232d8f460ff1e00199113
       path: ruleset.yaml
     registry:
       quay:
-        host: "registry-quay-quay.apps.cluster-wwtmx.dyn.redhatworkshops.io"
-        url: "https://registry-quay-quay.apps.cluster-wwtmx.dyn.redhatworkshops.io"
+        host: "registry-quay-quay.apps.fixture.example"
+        url: "https://registry-quay-quay.apps.fixture.example"
         clusterId: openshift
         credentials:
           sourcePullSecretName: default-quay-openshift
@@ -66,23 +66,23 @@ spec:
           runtimePullSecretName: default-quay-openshift
     services:
       devSpaces:
-        url: "https://devspaces.apps.cluster-wwtmx.dyn.redhatworkshops.io"
-        githubCallbackUrl: "https://devspaces.apps.cluster-wwtmx.dyn.redhatworkshops.io/api/oauth/callback"
+        url: "https://devspaces.apps.fixture.example"
+        githubCallbackUrl: "https://devspaces.apps.fixture.example/api/oauth/callback"
       developerHub:
-        url: "https://backstage-backstage-developer-hub.apps.cluster-wwtmx.dyn.redhatworkshops.io"
-        oidcCallbackUrl: "https://backstage-backstage-developer-hub.apps.cluster-wwtmx.dyn.redhatworkshops.io/api/auth/oidc/handler/frame"
+        url: "https://backstage-backstage-developer-hub.apps.fixture.example"
+        oidcCallbackUrl: "https://backstage-backstage-developer-hub.apps.fixture.example/api/auth/oidc/handler/frame"
       keycloak:
-        url: "https://cf-idp-keycloak-keycloak.apps.cluster-wwtmx.dyn.redhatworkshops.io"
+        url: "https://cf-idp-keycloak-keycloak.apps.fixture.example"
         privateUrl: https://cf-idp-keycloak.keycloak.svc:8443
       microcks:
-        url: "https://microcks.apps.cluster-wwtmx.dyn.redhatworkshops.io"
-        redirectUri: "https://microcks.apps.cluster-wwtmx.dyn.redhatworkshops.io/*"
+        url: "https://microcks.apps.fixture.example"
+        redirectUri: "https://microcks.apps.fixture.example/*"
       hawtio:
-        host: "hawtio.apps.cluster-wwtmx.dyn.redhatworkshops.io"
+        host: "hawtio.apps.fixture.example"
       gitea:
-        rootUrl: "https://gitea-gitea.apps.cluster-wwtmx.dyn.redhatworkshops.io/"
-        domain: "gitea-gitea.apps.cluster-wwtmx.dyn.redhatworkshops.io"
-        sshDomain: "gitea-ssh.apps.cluster-wwtmx.dyn.redhatworkshops.io"
+        rootUrl: "https://gitea-gitea.apps.fixture.example/"
+        domain: "gitea-gitea.apps.fixture.example"
+        sshDomain: "gitea-ssh.apps.fixture.example"
     build:
       sourceRevision: main
       sccClusterRoleName: system:openshift:scc:pipelines-scc

@@ -19,37 +19,38 @@ spec:
           - list:
               elements:
                 # Required foundation. Both entries are required for the approved ESO secret flow.
-                - {name: operator-external-secrets, project: platform-operators, namespace: external-secrets-operator, path: operators/external-secrets, renderer: kustomize, createNamespace: 'true', skipDryRun: 'false'}
-                - {name: external-secrets, project: platform-infrastructure, namespace: cf-idp-secrets, path: components/external-secrets, renderer: kustomize, createNamespace: 'true', skipDryRun: 'true'}
+                - {name: operator-external-secrets, project: platform-operators, namespace: external-secrets-operator, path: operators/external-secrets}
+                - {name: external-secrets, project: platform-infrastructure, namespace: cf-idp-secrets, path: components/external-secrets}
 
                 # Default workshop infrastructure. Remove an operator only when the target already provides it.
-                - {name: operator-postgresql, project: platform-operators, namespace: openshift-operators, path: operators/postgresql, renderer: kustomize, createNamespace: 'true', skipDryRun: 'false'}
-                - {name: operator-developer-hub, project: platform-operators, namespace: openshift-operators, path: operators/developer-hub, renderer: kustomize, createNamespace: 'true', skipDryRun: 'false'}
-                - {name: operator-devspaces, project: platform-operators, namespace: openshift-operators, path: operators/devspaces, renderer: kustomize, createNamespace: 'true', skipDryRun: 'false'}
-                - {name: operator-pipelines, project: platform-operators, namespace: openshift-operators, path: operators/openshift-pipelines, renderer: kustomize, createNamespace: 'true', skipDryRun: 'false'}
-                - {name: operator-apicurio, project: platform-operators, namespace: openshift-operators, path: operators/apicurio-registry, renderer: kustomize, createNamespace: 'true', skipDryRun: 'false'}
-                - {name: operator-quay, project: platform-operators, namespace: openshift-operators, path: operators/quay, renderer: kustomize, createNamespace: 'true', skipDryRun: 'false'}
-                - {name: operator-quay-bridge, project: platform-operators, namespace: openshift-operators, path: operators/quay-bridge, renderer: kustomize, createNamespace: 'true', skipDryRun: 'false'}
-                - {name: operator-hawtio, project: platform-operators, namespace: openshift-operators, path: operators/hawtio, renderer: kustomize, createNamespace: 'true', skipDryRun: 'false'}
+                - {name: operator-postgresql, project: platform-operators, namespace: openshift-operators, path: operators/postgresql}
+                - {name: operator-developer-hub, project: platform-operators, namespace: openshift-operators, path: operators/developer-hub}
+                - {name: operator-devspaces, project: platform-operators, namespace: openshift-operators, path: operators/devspaces}
+                - {name: operator-pipelines, project: platform-operators, namespace: openshift-operators, path: operators/openshift-pipelines}
+                - {name: operator-apicurio, project: platform-operators, namespace: openshift-operators, path: operators/apicurio-registry}
+                - {name: operator-quay, project: platform-operators, namespace: openshift-operators, path: operators/quay}
+                - {name: operator-quay-bridge, project: platform-operators, namespace: openshift-operators, path: operators/quay-bridge}
+                - {name: operator-hawtio, project: platform-operators, namespace: openshift-operators, path: operators/hawtio}
 
                 # Identity. Keycloak depends on the target infrastructure's existing RHBK operator.
-                - {name: keycloak, project: platform-services, namespace: keycloak, path: components/keycloak, renderer: keycloak, createNamespace: 'true', skipDryRun: 'true'}
+                - {name: keycloak, project: platform-services, namespace: keycloak, path: components/keycloak}
+
                 # Registry and delivery. Quay Bridge depends on Quay and both corresponding operators.
-                - {name: quay, project: platform-services, namespace: quay, path: components/quay, renderer: kustomize, createNamespace: 'true', skipDryRun: 'true'}
-                - {name: quay-bridge, project: platform-services, namespace: openshift-operators, path: components/quay-bridge, renderer: quay-bridge, createNamespace: 'true', skipDryRun: 'true'}
-                - {name: pipelines, project: platform-services, namespace: tekton-tasks, path: components/pipelines, renderer: kustomize, createNamespace: 'true', skipDryRun: 'true'}
-                - {name: devspaces, project: platform-services, namespace: openshift-devspaces, path: components/devspaces, renderer: devspaces, createNamespace: 'true', skipDryRun: 'true'}
+                - {name: quay, project: platform-services, namespace: quay, path: components/quay}
+                - {name: quay-bridge, project: platform-services, namespace: openshift-operators, path: components/quay-bridge}
+                - {name: pipelines, project: platform-services, namespace: tekton-tasks, path: components/pipelines}
+                - {name: devspaces, project: platform-services, namespace: openshift-devspaces, path: components/devspaces}
 
                 # API lifecycle. Apicurio and Microcks depend on Keycloak; Apicurio also needs PostgreSQL.
-                - {name: apicurio, project: platform-services, namespace: apicurio, path: components/apicurio, renderer: apicurio, createNamespace: 'true', skipDryRun: 'true'}
-                - {name: microcks, project: platform-services, namespace: microcks, path: components/microcks, renderer: microcks, createNamespace: 'true', skipDryRun: 'true'}
-                - {name: hawtio, project: platform-services, namespace: hawtio, path: components/hawtio, renderer: kustomize, createNamespace: 'true', skipDryRun: 'true'}
+                - {name: apicurio, project: platform-services, namespace: apicurio, path: components/apicurio}
+                - {name: microcks, project: platform-services, namespace: microcks, path: components/microcks}
+                - {name: hawtio, project: platform-services, namespace: hawtio, path: components/hawtio}
 
                 # Developer portal. Developer Hub consumes identity, registry, API, and delivery services.
-                - {name: developer-hub, project: platform-services, namespace: developer-hub, path: components/developer-hub, renderer: kustomize, createNamespace: 'true', skipDryRun: 'true'}
+                - {name: developer-hub, project: platform-services, namespace: developer-hub, path: components/developer-hub}
 
                 # Tenant support. Admission manifests reference the shared platform services.
-                - {name: tenant-admissions, project: platform-services, namespace: openshift-gitops, path: tenants, renderer: directory, createNamespace: 'false', skipDryRun: 'true'}
+                - {name: tenant-admissions, project: platform-services, namespace: openshift-gitops, path: tenants, renderer: directory}
   template:
     metadata:
       name: '{{ .name }}'
@@ -66,6 +67,9 @@ spec:
         repoURL: '{{ .spec.platform.configuration.repositoryUrl }}'
         targetRevision: '{{ .spec.platform.configuration.revision }}'
         path: '{{ .path }}'
+        kustomize:
+          commonAnnotations:
+            platform.contract-first.io/router-domain: '{{ .spec.platform.cluster.routerDomain }}'
       syncPolicy:
         automated:
           prune: true
@@ -78,119 +82,9 @@ spec:
             maxDuration: 2m
   templatePatch: |
     spec:
-      {{- if eq .renderer "keycloak" }}
+      {{- if eq (get . "renderer" | default "kustomize") "directory" }}
       source:
-        kustomize:
-          patches:
-            - target:
-                group: k8s.keycloak.org
-                version: v2alpha1
-                kind: Keycloak
-                name: cf-idp-keycloak
-              patch: |-
-                - op: add
-                  path: /spec/hostname
-                  value:
-                    hostname: {{ trimPrefix "https://" .spec.platform.services.keycloak.url | quote }}
-            - target:
-                group: route.openshift.io
-                version: v1
-                kind: Route
-                name: cf-idp-keycloak
-              patch: |-
-                - op: add
-                  path: /spec/host
-                  value: {{ trimPrefix "https://" .spec.platform.services.keycloak.url | quote }}
-      {{- else if eq .renderer "devspaces" }}
-      source:
-        kustomize:
-          patches:
-            - target:
-                group: org.eclipse.che
-                version: v2
-                kind: CheCluster
-                name: devspaces
-              patch: |-
-                - op: add
-                  path: /spec/networking/hostname
-                  value: {{ trimPrefix "https://" .spec.platform.services.devSpaces.url | quote }}
-      {{- else if eq .renderer "apicurio" }}
-      source:
-        kustomize:
-          patches:
-            - target:
-                group: registry.apicur.io
-                version: v1
-                kind: ApicurioRegistry3
-                name: apicurio-registry
-              patch: |-
-                - op: replace
-                  path: /spec/app/ingress/host
-                  value: {{ printf "apicurio.%s" .spec.platform.cluster.routerDomain | quote }}
-                - op: replace
-                  path: /spec/ui/ingress/host
-                  value: {{ printf "apicurio-ui.%s" .spec.platform.cluster.routerDomain | quote }}
-                - op: add
-                  path: /spec/ui/env
-                  value:
-                    - name: REGISTRY_API_URL
-                      value: {{ .spec.platform.schemaRegistry.apiUrl | quote }}
-      {{- else if eq .renderer "quay-bridge" }}
-      source:
-        kustomize:
-          patches:
-            - target:
-                group: quay.redhat.com
-                version: v1
-                kind: QuayIntegration
-                name: quay
-              patch: |-
-                - op: replace
-                  path: /spec/quayHostname
-                  value: {{ printf "https://registry-quay-quay.%s" .spec.platform.cluster.routerDomain | quote }}
-      {{- else if eq .renderer "microcks" }}
-      source: null
-      sources:
-        - repoURL: https://microcks.io/helm
-          chart: microcks
-          targetRevision: 1.14.0
-          helm:
-            releaseName: microcks
-            apiVersions:
-              - route.openshift.io/v1/Route
-            valueFiles:
-              - $values/components/microcks/values.yaml
-            values: |
-              microcks:
-                url: microcks.{{ .spec.platform.cluster.routerDomain }}
-                ingressClassName: openshift-default
-                ingressAnnotations:
-                  route.openshift.io/termination: edge
-                grpcEnableTLS: false
-                grpcIngressClassName: openshift-default
-                grpcIngressAnnotations:
-                  route.openshift.io/termination: edge
-              keycloak:
-                url: cf-idp-keycloak-keycloak.{{ .spec.platform.cluster.routerDomain }}
-                privateUrl: https://cf-idp-keycloak-keycloak.{{ .spec.platform.cluster.routerDomain }}
-                realm: platform
-        - repoURL: '{{ .spec.platform.configuration.repositoryUrl }}'
-          targetRevision: '{{ .spec.platform.configuration.revision }}'
-          path: components/microcks
-          ref: values
-          kustomize:
-            patches:
-              - target:
-                  group: route.openshift.io
-                  version: v1
-                  kind: Route
-                  name: microcks
-                patch: |-
-                  - op: replace
-                    path: /spec/host
-                    value: {{ printf "microcks.%s" .spec.platform.cluster.routerDomain | quote }}
-      {{- else if eq .renderer "directory" }}
-      source:
+        kustomize: null
         directory:
           recurse: true
       {{- end }}
@@ -198,12 +92,7 @@ spec:
         syncOptions:
           - RespectIgnoreDifferences=true
           - ApplyOutOfSyncOnly=true
-          {{- if eq .createNamespace "true" }}
-          - CreateNamespace=true
-          {{- end }}
-          {{- if eq .skipDryRun "true" }}
           - SkipDryRunOnMissingResource=true
-          {{- end }}
   syncPolicy:
     applicationsSync: create-update
     preserveResourcesOnDeletion: true
