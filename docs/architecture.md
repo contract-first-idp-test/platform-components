@@ -60,9 +60,18 @@ target facts with credentials while workloads depend only on stable local Secret
 
 An admitted Domain is also the lifecycle unit for publisher identity. The Domain chart generates
 canonical `<domain>-apicurio` and `<domain>-microcks` Secrets in `cf-idp-secrets`, projects them into
-`keycloak`, and creates experimental `KeycloakOIDCClient` resources beside the single
-`Keycloak/platform` instance. The upstream community Operator is pinned to 26.7.1, enables
-`client-admin-api:v2`, and is scoped by its OperatorGroup to `keycloak` only.
+`cf-idp-keycloak`, and creates experimental `KeycloakOIDCClient` resources beside the single
+`Keycloak/cf-idp-keycloak` instance. CF-IDP deliberately installs the upstream community Operator
+because declarative OIDC client management is part of the platform contract. Its OperatorGroup and
+all CF-IDP Keycloak operands are isolated in `cf-idp-keycloak`; CF-IDP does not own an existing
+workshop Keycloak Operator, its operands, or cluster authentication configuration.
+
+Keycloak CRDs remain cluster-scoped and shared even though reconciliation is namespace-scoped. A
+pre-existing Keycloak Operator can coexist only when its effective watch scope does not include
+`cf-idp-keycloak` and the shared CRD versions remain compatible. The installer preflight checks the
+effective CSV target namespaces before `configure-workshop.sh` writes activation configuration. Community
+`keycloak-operator.v26.7.1` is the current known-good starting CSV for the required
+`KeycloakOIDCClient` API and `client-admin-api:v2`; it is not a permanent patch-version freeze.
 
 Each Domain gets an exact-name, get-only reader and a conditioned ClusterSecretStore. Only a
 namespace carrying both the admitted Domain label and the platform-controlled build-environment

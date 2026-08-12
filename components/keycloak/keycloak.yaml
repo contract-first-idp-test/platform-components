@@ -2,7 +2,7 @@ apiVersion: k8s.keycloak.org/v2beta1
 kind: Keycloak
 metadata:
   name: cf-idp-keycloak
-  namespace: keycloak
+  namespace: cf-idp-keycloak
   annotations:
     argocd.argoproj.io/sync-wave: '0'
     platform.contract-first.io/router-domain: example.invalid

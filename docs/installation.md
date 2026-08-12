@@ -107,18 +107,23 @@ You need:
 
    From this point forward, Argo CD owns platform convergence.
 
-   The community Keycloak Operator is deliberately pinned to 26.7.1 with manual InstallPlan
-   approval. This is a required installation step, not an optional troubleshooting action:
+   CF-IDP deliberately installs the community Keycloak Operator in `cf-idp-keycloak` for
+   declarative `KeycloakOIDCClient` management. Its InstallPlans are approved automatically. The
+   `configure-workshop.sh` preflight fails before activation when another Keycloak Operator's effective scope
+   includes `cf-idp-keycloak`; do not bypass that failure by deleting or taking ownership of an
+   existing identity stack.
 
    ```bash
-   oc get installplan -n keycloak
-   oc patch installplan <keycloak-install-plan> -n keycloak \
-     --type merge -p '{"spec":{"approved":true}}'
-   oc wait csv/keycloak-operator.v26.7.1 -n keycloak \
+   oc get operatorgroup -A
+   oc get subscription,installplan,csv -n cf-idp-keycloak
+   oc wait csv/keycloak-operator.v26.7.1 -n cf-idp-keycloak \
      --for=jsonpath='{.status.phase}'=Succeeded --timeout=10m
    ```
 
-   Confirm the OperatorGroup targets only `keycloak` before approving the plan.
+   Confirm `OperatorGroup/cf-idp-keycloak` resolves only to `cf-idp-keycloak`. A pre-existing
+   operator may coexist only with a disjoint effective watch scope. CRDs are cluster-scoped and
+   shared, so verify the existing Keycloak and realm resources remain healthy after installation.
+   Version 26.7.1 is the current known-good starting point, not a permanently frozen patch.
 
    Optionally, confirm that the selected platform Applications have appeared:
 

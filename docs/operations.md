@@ -41,7 +41,7 @@ identity boundary, and re-admission can generate new client secrets. Diagnose pr
 ```bash
 oc get password,externalsecret -n cf-idp-secrets
 oc get clustersecretstore
-oc get keycloakoidcclient -n keycloak
+oc get keycloakoidcclient -n cf-idp-keycloak
 oc get externalsecret -A | grep -E 'apicurio-client|microcks-client'
 ```
 
@@ -51,20 +51,33 @@ publisher Secret is a security defect.
 
 ## Keycloak Operator and clients
 
-The Keycloak Subscription is manual. If identity remains pending after a clean install, locate and
-approve only the InstallPlan that owns `keycloak-operator.v26.7.1`, then verify there is one
-OperatorGroup and that its target namespace is exactly `keycloak`. `KeycloakOIDCClient` is an
-experimental upstream API in this release; its `keycloakCRName` and `secretRef` are deliberately
-same-namespace references.
+The CF-IDP Keycloak Subscription uses automatic InstallPlan approval and starts from the current
+known-good `keycloak-operator.v26.7.1`. The `fast` channel may advance; the operational contract is
+support for declarative `KeycloakOIDCClient`, not permanent patch immutability. The CF-IDP operator,
+Keycloak instance, realm imports, and clients live only in `cf-idp-keycloak`. Existing workshop
+identity infrastructure is outside CF-IDP ownership.
+
+Before installing or changing a Keycloak operator, compare effective scopes from CSV
+`olm.targetNamespaces` annotations and runtime controller configuration. A manifest's requested
+`OperatorGroup.spec.targetNamespaces` alone is insufficient. The installer preflight blocks another
+Keycloak-providing CSV whose effective scope includes `cf-idp-keycloak`. Shared Keycloak CRDs are
+cluster-scoped, so confirm served/storage versions and recheck every pre-existing Keycloak operand
+after an operator installation or upgrade.
+
+`KeycloakOIDCClient` is an experimental upstream API in this release; its `keycloakCRName` and
+`secretRef` are deliberately same-namespace references.
 
 Useful non-secret checks are:
 
 ```bash
-oc get subscription,installplan,csv -n keycloak
-oc get operatorgroup -n keycloak -o yaml
-oc get keycloak,keycloakrealmimport,keycloakoidcclient -n keycloak
+oc get subscription,installplan,csv -n cf-idp-keycloak
+oc get operatorgroup -n cf-idp-keycloak -o yaml
+oc get keycloak,keycloakrealmimport,keycloakoidcclient -n cf-idp-keycloak
+oc get crd keycloaks.k8s.keycloak.org \
+  keycloakrealmimports.k8s.keycloak.org \
+  keycloakoidcclients.k8s.keycloak.org
 oc auth can-i create keycloakoidcclients.k8s.keycloak.org \
-  --as system:serviceaccount:<build-namespace>:pipeline -n keycloak
+  --as system:serviceaccount:<build-namespace>:pipeline -n cf-idp-keycloak
 ```
 
 The last result must be `no`.

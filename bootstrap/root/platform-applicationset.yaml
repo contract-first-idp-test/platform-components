@@ -28,13 +28,13 @@ spec:
                 - {name: operator-devspaces, project: platform-operators, namespace: openshift-operators, path: operators/devspaces}
                 - {name: operator-pipelines, project: platform-operators, namespace: openshift-operators, path: operators/openshift-pipelines}
                 - {name: operator-apicurio, project: platform-operators, namespace: openshift-operators, path: operators/apicurio-registry}
-                - {name: operator-keycloak, project: platform-operators, namespace: keycloak, path: operators/keycloak}
+                - {name: operator-keycloak, project: platform-operators, namespace: cf-idp-keycloak, path: operators/keycloak}
                 - {name: operator-quay, project: platform-operators, namespace: openshift-operators, path: operators/quay}
                 - {name: operator-quay-bridge, project: platform-operators, namespace: openshift-operators, path: operators/quay-bridge}
                 - {name: operator-hawtio, project: platform-operators, namespace: openshift-operators, path: operators/hawtio}
 
-                # Identity. The upstream Keycloak operator is pinned and approved manually.
-                - {name: keycloak, project: platform-services, namespace: keycloak, path: components/keycloak}
+                # Identity. CF-IDP isolates its upstream Keycloak operator from workshop identity.
+                - {name: keycloak, project: platform-services, namespace: cf-idp-keycloak, path: components/keycloak}
 
                 # Registry and delivery. Quay Bridge depends on Quay and both corresponding operators.
                 - {name: quay, project: platform-services, namespace: quay, path: components/quay}

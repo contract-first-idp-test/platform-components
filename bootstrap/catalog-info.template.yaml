@@ -54,7 +54,7 @@ spec:
       authServerUrl: "https://cf-idp-keycloak-keycloak.@@ROUTER_DOMAIN@@/realms/platform"
     security:
       keycloak:
-        namespace: keycloak
+        namespace: cf-idp-keycloak
         instanceName: cf-idp-keycloak
         realm: platform
       secrets:
@@ -81,7 +81,7 @@ spec:
         oidcCallbackUrl: "https://backstage-backstage-developer-hub.@@ROUTER_DOMAIN@@/api/auth/oidc/handler/frame"
       keycloak:
         url: "https://cf-idp-keycloak-keycloak.@@ROUTER_DOMAIN@@"
-        privateUrl: https://cf-idp-keycloak.keycloak.svc:8443
+        privateUrl: https://cf-idp-keycloak.cf-idp-keycloak.svc:8443
       microcks:
         url: "https://microcks.@@ROUTER_DOMAIN@@"
         redirectUri: "https://microcks.@@ROUTER_DOMAIN@@/*"

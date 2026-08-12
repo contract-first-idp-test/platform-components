@@ -73,7 +73,7 @@ spec:
         oidcCallbackUrl: "https://backstage-backstage-developer-hub.apps.fixture.example/api/auth/oidc/handler/frame"
       keycloak:
         url: "https://cf-idp-keycloak-keycloak.apps.fixture.example"
-        privateUrl: https://cf-idp-keycloak.keycloak.svc:8443
+        privateUrl: https://cf-idp-keycloak.cf-idp-keycloak.svc:8443
       microcks:
         url: "https://microcks.apps.fixture.example"
         redirectUri: "https://microcks.apps.fixture.example/*"

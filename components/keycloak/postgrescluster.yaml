@@ -2,7 +2,7 @@ apiVersion: postgres-operator.crunchydata.com/v1beta1
 kind: PostgresCluster
 metadata:
   name: cf-idp-keycloak-db
-  namespace: keycloak
+  namespace: cf-idp-keycloak
   annotations:
     argocd.argoproj.io/sync-wave: '-10'
 spec:

@@ -1,8 +1,8 @@
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
-  name: keycloak
-  namespace: keycloak
+  name: cf-idp-keycloak
+  namespace: cf-idp-keycloak
 spec:
   targetNamespaces:
-    - keycloak
+    - cf-idp-keycloak

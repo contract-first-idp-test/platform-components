@@ -2,10 +2,10 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: keycloak-operator
-  namespace: keycloak
+  namespace: cf-idp-keycloak
 spec:
   channel: fast
-  installPlanApproval: Manual
+  installPlanApproval: Automatic
   name: keycloak-operator
   source: community-operators
   sourceNamespace: openshift-marketplace

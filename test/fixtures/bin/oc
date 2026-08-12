@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ $* == get\ clusterserviceversions.operators.coreos.com\ -A\ --no-headers\ -o\ custom-columns=* ]]; then
+  if [[ ${MOCK_KEYCLOAK_SCOPE_CONFLICT:-0} == 1 ]]; then
+    printf '%s\n' 'existing-identity keycloak-operator.v26.7.1 cf-idp-keycloak <none> keycloaks.k8s.keycloak.org'
+  else
+    printf '%s\n' \
+      'keycloak rhbk-operator.v26.4.14-opr.1 keycloak <none> keycloaks.k8s.keycloak.org' \
+      'cf-idp-keycloak keycloak-operator.v26.7.1 cf-idp-keycloak <none> keycloaks.k8s.keycloak.org'
+  fi
+  exit 0
+fi
+
 case "$*" in
   'whoami --show-server') printf '%s\n' 'https://api.fixture.example:6443' ;;
   'get infrastructure cluster -o jsonpath={.status.infrastructureName}')

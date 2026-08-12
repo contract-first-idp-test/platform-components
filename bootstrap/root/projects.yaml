@@ -54,7 +54,7 @@ spec:
     - {server: https://kubernetes.default.svc, namespace: openshift-gitops-operator}
     - {server: https://kubernetes.default.svc, namespace: external-secrets-operator}
     - {server: https://kubernetes.default.svc, namespace: cert-manager-operator}
-    - {server: https://kubernetes.default.svc, namespace: keycloak}
+    - {server: https://kubernetes.default.svc, namespace: cf-idp-keycloak}
     - {server: https://kubernetes.default.svc, namespace: apicurio-designer}
   clusterResourceWhitelist:
     - {group: '', kind: Namespace}
@@ -75,7 +75,7 @@ spec:
     - REPLACED_BY_ROOT_KUSTOMIZATION
     - https://microcks.io/helm
   destinations:
-    - {server: https://kubernetes.default.svc, namespace: keycloak}
+    - {server: https://kubernetes.default.svc, namespace: cf-idp-keycloak}
     - {server: https://kubernetes.default.svc, namespace: quay}
     - {server: https://kubernetes.default.svc, namespace: apicurio}
     - {server: https://kubernetes.default.svc, namespace: microcks}
