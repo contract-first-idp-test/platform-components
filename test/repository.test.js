@@ -44,7 +44,8 @@ function expectConfiguredPlatformTarget(repository) {
   const configuration = catalog.spec.platform.configuration;
   expect(catalog.metadata.annotations['github.com/project-slug'])
     .toBe(`${configuration.organization}/${configuration.repository}`);
-  expect(catalog.spec.platform.tenantAdmission.branch).toBe(configuration.revision);
+  expect(catalog.spec.platform.tenantAdmission.branch).toMatch(/^(main|test)$/);
+  expect(configuration.revision).toMatch(/^(v[0-9]+\.[0-9]+\.[0-9]+|test)$/);
 }
 
 describe('fork-ready repository distribution', () => {

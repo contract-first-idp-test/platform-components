@@ -14,7 +14,8 @@ kustomization=$root/bootstrap/root/kustomization.yaml
 [[ -s $template && -s $kustomization ]] || die 'bootstrap templates are missing'
 
 remote=$(git -C "$root" remote get-url origin) || die 'could not read Git remote origin'
-revision=$(git -C "$root" branch --show-current) || die 'could not read the current branch'
+platform_version=$(sed -n 's/^version:[[:space:]]*//p' "$root/release.yaml")
+revision=v$platform_version
 cluster_api_url=$(oc whoami --show-server) || die 'log into the target cluster with oc'
 cluster_name=$(oc get infrastructure cluster \
   -o jsonpath='{.status.infrastructureName}') || die 'could not discover the infrastructure name'
@@ -43,6 +44,7 @@ cluster_api_url=${cluster_api_url%/}
 router_domain=${router_domain%.}
 [[ -n $revision && $revision =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ &&
   $revision != *..* && $revision != *//* ]] || die 'current branch is empty or invalid'
+[[ $platform_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die 'release.yaml version is invalid'
 [[ $cluster_api_url =~ ^https://[A-Za-z0-9.-]+(:[0-9]+)?$ ]] || die 'cluster API URL is invalid'
 [[ $cluster_name =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] || die 'cluster name is invalid'
 label='[a-z0-9]([a-z0-9-]*[a-z0-9])?'
@@ -62,6 +64,7 @@ replace() {
 
 replace PLATFORM_REPO_URL "$repository_url"
 replace PLATFORM_REVISION "$revision"
+replace PLATFORM_VERSION "$platform_version"
 replace SCM_HOST "$scm_host"
 replace SCM_ORGANIZATION "$organization"
 replace SCM_REPOSITORY "$repository"

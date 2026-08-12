@@ -98,10 +98,12 @@ credentials for per-user GitHub authorization. Human Developer Hub authenticatio
 Keycloak, and the App private key never enters the Dev Spaces namespace. See the
 [authoritative App setup](installation.md#configure-the-cf-idp-github-app).
 
-The public target also declares the released Software Templates repository and revision. Developer
-Hub reads that dependency to build one revision-aware catalog location, so an installer does not
+The public target also declares the released Software Templates repository, exact revision, and
+artifact version. Developer Hub reads that publication coordinate to build one revision-aware catalog location, so an installer does not
 need a sibling checkout or a workshop-specific templates fork. The configuration helper records
-the platform target; it does not discover or rewrite dependency contents.
+the platform target; it does not discover or rewrite dependency contents. This discovery coordinate
+does not make Software Templates a runtime compatibility dependency of platform-components. See
+[Release and compatibility model](release-versioning.md).
 
 The in-cluster Kubernetes integration keeps authentication and TLS trust independent. It uses the
 existing `backstage-cluster-viewer` token, connects to `https://kubernetes.default.svc`, and trusts

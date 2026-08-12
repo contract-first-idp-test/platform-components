@@ -11,7 +11,8 @@ spec:
   type: contract-first-idp-target
   platform:
     distribution:
-      version: v1.0.0
+      version: "@@PLATFORM_VERSION@@"
+      revision: "@@PLATFORM_REVISION@@"
     configuration:
       host: "@@SCM_HOST@@"
       organization: "@@SCM_ORGANIZATION@@"
@@ -40,14 +41,17 @@ spec:
         organization: contract-first-idp-test
         repository: software-templates
         repositoryUrl: https://github.com/contract-first-idp-test/software-templates.git
-        revision: v1.0.0
+        revision: v1.1.0
+        version: 1.1.0
         catalogPath: catalog-info.yaml
       developerCharts:
         repositoryUrl: https://github.com/contract-first-idp-test/developer-charts.git
-        revision: v1.0.0
+        revision: v1.0.1
+        version: 1.0.1
     charts:
       repositoryUrl: https://github.com/contract-first-idp-test/developer-charts.git
-      revision: v1.0.0
+      revision: v1.0.1
+      version: 1.0.1
     schemaRegistry:
       apiUrl: "https://apicurio.@@ROUTER_DOMAIN@@/apis/registry/v3"
       uiUrl: "https://apicurio-ui.@@ROUTER_DOMAIN@@"

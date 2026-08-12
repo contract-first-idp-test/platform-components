@@ -50,6 +50,7 @@ identity, and configuration contracts.
 - [Component inventory](docs/component-inventory.md)
 - [Operations](docs/operations.md)
 - [Validation and development](docs/validation.md)
+- [Release and compatibility model](docs/release-versioning.md)
 
 ## Repository Structure
 

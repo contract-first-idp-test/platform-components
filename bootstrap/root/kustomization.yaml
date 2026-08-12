@@ -9,7 +9,7 @@ configMapGenerator:
     namespace: openshift-gitops
     literals:
       - PLATFORM_REPO_URL=https://github.com/contract-first-idp-test/platform-components.git
-      - PLATFORM_REVISION=main
+      - PLATFORM_REVISION=v1.1.0
 generatorOptions:
   disableNameSuffixHash: true
 replacements:

@@ -11,13 +11,14 @@ spec:
   type: contract-first-idp-target
   platform:
     distribution:
-      version: v1.0.0
+      version: 1.1.0
+      revision: v1.1.0
     configuration:
       host: "github.com"
       organization: "contract-first-idp-test"
       repository: "platform-components"
       repositoryUrl: "https://github.com/contract-first-idp-test/platform-components.git"
-      revision: "main"
+      revision: "v1.1.0"
       valuesPath: catalog-info.yaml
     tenantAdmission:
       branch: "main"
@@ -40,14 +41,17 @@ spec:
         organization: contract-first-idp-test
         repository: software-templates
         repositoryUrl: https://github.com/contract-first-idp-test/software-templates.git
-        revision: v1.0.0
+        revision: v1.1.0
+        version: 1.1.0
         catalogPath: catalog-info.yaml
       developerCharts:
         repositoryUrl: https://github.com/contract-first-idp-test/developer-charts.git
-        revision: v1.0.0
+        revision: v1.0.1
+        version: 1.0.1
     charts:
       repositoryUrl: https://github.com/contract-first-idp-test/developer-charts.git
-      revision: v1.0.0
+      revision: v1.0.1
+      version: 1.0.1
     schemaRegistry:
       apiUrl: "https://apicurio.apps.cluster-sbjf8.dyn.redhatworkshops.io/apis/registry/v3"
       uiUrl: "https://apicurio-ui.apps.cluster-sbjf8.dyn.redhatworkshops.io"

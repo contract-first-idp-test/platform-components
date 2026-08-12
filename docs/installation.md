@@ -26,7 +26,7 @@ You need:
    ```bash
    git clone git@github.com:YOUR_ORGANIZATION/platform-components.git
    cd platform-components
-   git switch main
+   git switch --detach v1.1.0
    ```
 
 2. Configure the workshop target.
@@ -39,7 +39,8 @@ You need:
    ./bootstrap/configure-workshop.sh
    ```
 
-   The helper generates `catalog-info.yaml` and updates the bootstrap repository coordinates.
+   Run the helper from the exact release tag named by `release.yaml`. It generates
+   `catalog-info.yaml` and updates the bootstrap repository coordinates to that immutable tag.
    `catalog-info.yaml` is the source of truth for this workshop target. It contains the cluster
    identity, GitHub organization and repository, router-derived service URLs, Dev Spaces URL and
    GitHub callback, and the other public platform configuration. Open it for a quick review; later

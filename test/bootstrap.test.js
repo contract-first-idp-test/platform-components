@@ -28,7 +28,8 @@ describe('platform target bootstrap', () => {
       },
     });
     for (const token of [
-      'PLATFORM_REPO_URL', 'PLATFORM_REVISION', 'SCM_HOST', 'SCM_ORGANIZATION',
+      'PLATFORM_REPO_URL', 'PLATFORM_REVISION', 'PLATFORM_VERSION',
+      'SCM_HOST', 'SCM_ORGANIZATION',
       'SCM_REPOSITORY', 'CLUSTER_API_URL', 'CLUSTER_NAME', 'ROUTER_DOMAIN',
     ]) expect(source).toContain(`@@${token}@@`);
   });
@@ -65,8 +66,10 @@ describe('platform target bootstrap', () => {
         organization: 'fixture-org',
         repository: 'platform-components',
         repositoryUrl: 'https://github.com/fixture-org/platform-components.git',
-        revision: 'test',
+        revision: 'v1.1.0',
       });
+      expect(catalog.spec.platform.distribution)
+        .toEqual({version: '1.1.0', revision: 'v1.1.0'});
       expect(catalog.spec.platform.cluster).toEqual({
         name: 'fixture',
         apiUrl: 'https://api.fixture.example:6443',
@@ -92,13 +95,13 @@ describe('platform target bootstrap', () => {
         resource.kind === 'Application' && resource.metadata.name === 'platform-root');
       expect(rootApplication.spec.source).toMatchObject({
         repoURL: 'https://github.com/fixture-org/platform-components.git',
-        targetRevision: 'test',
+        targetRevision: 'v1.1.0',
         path: '.',
       });
       const generatedSet = resources.find(resource => resource.kind === 'ApplicationSet');
       expect(generatedSet.spec.generators[0].matrix.generators[0].git).toMatchObject({
         repoURL: 'https://github.com/fixture-org/platform-components.git',
-        revision: 'test',
+        revision: 'v1.1.0',
       });
     } finally {
       checkout.cleanup();
