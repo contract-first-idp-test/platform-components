@@ -52,8 +52,9 @@ You need:
    workshop organization. Confirm that `domain-maintainers`, `domain-contributors`, and
    `domain-viewers` exist before using the golden paths.
 
-   Create the ignored credential file and populate the GitHub App values, workshop user values,
-   and the other required external credentials.
+   Create the ignored credential file and populate the externally issued GitHub App values and
+   the documented non-secret usernames/emails. Internal passwords and client secrets are generated
+   by External Secrets Operator; do not manufacture them with `openssl rand`.
 
    ```bash
    cp bootstrap/secrets.env.example bootstrap/secrets.env
@@ -106,6 +107,19 @@ You need:
 
    From this point forward, Argo CD owns platform convergence.
 
+   The community Keycloak Operator is deliberately pinned to 26.7.1 with manual InstallPlan
+   approval. This is a required installation step, not an optional troubleshooting action:
+
+   ```bash
+   oc get installplan -n keycloak
+   oc patch installplan <keycloak-install-plan> -n keycloak \
+     --type merge -p '{"spec":{"approved":true}}'
+   oc wait csv/keycloak-operator.v26.7.1 -n keycloak \
+     --for=jsonpath='{.status.phase}'=Succeeded --timeout=10m
+   ```
+
+   Confirm the OperatorGroup targets only `keycloak` before approving the plan.
+
    Optionally, confirm that the selected platform Applications have appeared:
 
    ```bash
@@ -115,8 +129,16 @@ You need:
 ## After Installation
 
 Open Developer Hub using `spec.platform.services.developerHub.url` from `catalog-info.yaml`. Sign in
-through Keycloak with `DEMO_USER_USERNAME` and `DEMO_USER_PASSWORD` from your local
-`bootstrap/secrets.env`, then explore the available Software Templates.
+through Keycloak with the configured `DEMO_USER_USERNAME`; retrieve its generated password without
+printing it into logs or reports:
+
+```bash
+oc extract secret/platform-generated-secrets -n cf-idp-secrets \
+  --keys=DEMO_USER_PASSWORD --to=-
+```
+
+The same pattern retrieves `QUAY_ADMIN_PASSWORD` or `GITEA_ADMIN_PASSWORD` when those services are
+enabled. Restrict terminal history and screen sharing while handling these values.
 
 For a deeper installation check, see [Validation](validation.md#installation-validation).
 For ongoing changes and credential rotation, see [Operations](operations.md).

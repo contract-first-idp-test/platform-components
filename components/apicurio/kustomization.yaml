@@ -15,11 +15,31 @@ replacements:
           kind: ApicurioRegistry3
           name: apicurio-registry
         fieldPaths:
+          - metadata.annotations.[platform.contract-first.io/keycloak-host]
           - spec.app.ingress.host
           - spec.ui.ingress.host
+          - spec.app.auth.redirectUri
+          - spec.app.auth.logoutUrl
         options:
           delimiter: .
           index: 1
+  - source:
+      group: registry.apicur.io
+      version: v1
+      kind: ApicurioRegistry3
+      name: apicurio-registry
+      fieldPath: metadata.annotations.[platform.contract-first.io/keycloak-host]
+    targets:
+      - select:
+          group: registry.apicur.io
+          version: v1
+          kind: ApicurioRegistry3
+          name: apicurio-registry
+        fieldPaths:
+          - spec.app.auth.authServerUrl
+        options:
+          delimiter: /
+          index: 2
   - source:
       group: registry.apicur.io
       version: v1

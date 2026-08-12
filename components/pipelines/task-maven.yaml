@@ -49,12 +49,10 @@ spec:
       description: The Maven repository mirror url
       type: string
       default: ""
-    - name: JAVA_VERSION
-      description: >-
-        Java version to use for the Maven build.
-        This platform task is pinned to the Java 21 builder image.
+    - name: MAVEN_IMAGE
+      description: Platform-approved Maven builder image selected by the build recipe.
       type: string
-      default: "21"
+      default: registry.access.redhat.com/ubi9/openjdk-21:1.24
     - name: SUBDIRECTORY
       type: string
       description: >-
@@ -117,14 +115,21 @@ spec:
       env:
         - name: HOME
           value: /tekton/home
-      image: registry.access.redhat.com/ubi9/openjdk-21:1.23
+      image: $(params.MAVEN_IMAGE)
       workingDir: $(workspaces.source.path)/$(params.SUBDIRECTORY)
       command: ["/usr/bin/env"]
       args:
         - "$(params.ENV_VARS[*])"
-        - "/usr/bin/mvn"
-        - "-s"
-        - "maven-generate/settings.xml"
+        - "/usr/bin/bash"
+        - "-ec"
+        - |
+          if [[ -x ./mvnw ]]; then
+            maven=./mvnw
+          else
+            maven=/usr/bin/mvn
+          fi
+          exec "$maven" -s maven-generate/settings.xml "$@"
+        - "maven"
         - "$(params.GOALS[*])"
       securityContext:
         runAsNonRoot: true

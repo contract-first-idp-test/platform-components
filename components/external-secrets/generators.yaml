@@ -1,0 +1,78 @@
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata: {name: backstage-backend, namespace: cf-idp-secrets}
+spec: {length: 48, digits: 8, symbols: 0, noUpper: false, allowRepeat: true, secretKeys: [BACKSTAGE_BACKEND_SECRET]}
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata: {name: backstage-keycloak, namespace: cf-idp-secrets}
+spec: {length: 48, digits: 8, symbols: 0, noUpper: false, allowRepeat: true, secretKeys: [KEYCLOAK_BACKSTAGE_CLIENT_SECRET]}
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata: {name: keycloak-client-admin, namespace: cf-idp-secrets}
+spec: {length: 48, digits: 8, symbols: 0, noUpper: false, allowRepeat: true, secretKeys: [KEYCLOAK_CLIENT_ADMIN_SECRET]}
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata: {name: demo-user, namespace: cf-idp-secrets}
+spec: {length: 32, digits: 6, symbols: 4, noUpper: false, allowRepeat: true, secretKeys: [DEMO_USER_PASSWORD]}
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata: {name: microcks-mongodb, namespace: cf-idp-secrets}
+spec: {length: 40, digits: 8, symbols: 0, noUpper: false, allowRepeat: true, secretKeys: [MICROCKS_MONGODB_PASSWORD]}
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata: {name: microcks-mongodb-admin, namespace: cf-idp-secrets}
+spec: {length: 40, digits: 8, symbols: 0, noUpper: false, allowRepeat: true, secretKeys: [MICROCKS_MONGODB_ADMIN_PASSWORD]}
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata: {name: quay-admin, namespace: cf-idp-secrets}
+spec: {length: 40, digits: 8, symbols: 4, noUpper: false, allowRepeat: true, secretKeys: [QUAY_ADMIN_PASSWORD]}
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata: {name: gitea-admin, namespace: cf-idp-secrets}
+spec: {length: 40, digits: 8, symbols: 4, noUpper: false, allowRepeat: true, secretKeys: [GITEA_ADMIN_PASSWORD]}
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata: {name: gitea-secret-key, namespace: cf-idp-secrets}
+spec: {length: 64, digits: 10, symbols: 0, noUpper: false, allowRepeat: true, secretKeys: [GITEA_SECRET_KEY]}
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata: {name: gitea-internal-token, namespace: cf-idp-secrets}
+spec: {length: 64, digits: 10, symbols: 0, noUpper: false, allowRepeat: true, secretKeys: [GITEA_INTERNAL_TOKEN]}
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: Password
+metadata: {name: gitea-jwt, namespace: cf-idp-secrets}
+spec: {length: 64, digits: 10, symbols: 0, noUpper: false, allowRepeat: true, secretKeys: [GITEA_JWT_SECRET]}
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: platform-generated-secrets
+  namespace: cf-idp-secrets
+spec:
+  refreshPolicy: CreatedOnce
+  target:
+    name: platform-generated-secrets
+    creationPolicy: Orphan
+    deletionPolicy: Retain
+  dataFrom:
+    - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: backstage-backend}}
+    - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: backstage-keycloak}}
+    - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: keycloak-client-admin}}
+    - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: demo-user}}
+    - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: microcks-mongodb}}
+    - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: microcks-mongodb-admin}}
+    - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: quay-admin}}
+    - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: gitea-admin}}
+    - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: gitea-secret-key}}
+    - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: gitea-internal-token}}
+    - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: gitea-jwt}}

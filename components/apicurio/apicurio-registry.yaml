@@ -6,8 +6,29 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: '0'
     platform.contract-first.io/router-domain: example.invalid
+    platform.contract-first.io/keycloak-host: cf-idp-keycloak-keycloak.invalid
 spec:
   app:
+    auth:
+      enabled: true
+      authServerUrl: https://cf-idp-keycloak-keycloak.invalid/realms/platform
+      tls:
+        tlsVerificationType: REQUIRED
+      appClientId: registry-api
+      uiClientId: apicurio-registry
+      redirectUri: https://apicurio-ui.invalid
+      logoutUrl: https://apicurio-ui.invalid
+      anonymousReadsEnabled: true
+      authz:
+        enabled: true
+        ownerOnlyEnabled: true
+        groupAccessEnabled: true
+        readAccessEnabled: true
+        roles:
+          source: token
+          admin: sr-admin
+          developer: sr-developer
+          readOnly: sr-readonly
     storage:
       type: postgresql
       sql:

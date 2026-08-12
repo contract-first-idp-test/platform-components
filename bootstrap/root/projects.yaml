@@ -23,6 +23,24 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
+  name: tenant-admissions
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: '-30'
+spec:
+  description: Approved tenant admission Application and per-Domain AppProject manifests only
+  sourceRepos:
+    - REPLACED_BY_ROOT_KUSTOMIZATION
+  destinations:
+    - {server: https://kubernetes.default.svc, namespace: openshift-gitops}
+  clusterResourceWhitelist: []
+  namespaceResourceWhitelist:
+    - {group: argoproj.io, kind: Application}
+    - {group: argoproj.io, kind: AppProject}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
   name: platform-operators
   namespace: openshift-gitops
   annotations:

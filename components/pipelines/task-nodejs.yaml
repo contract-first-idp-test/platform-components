@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: nodejs
+  namespace: tekton-tasks
+spec:
+  description: Run an approved Node.js 24 build script in a source workspace.
+  params:
+    - name: SCRIPT
+      type: string
+      description: Node/npm commands supplied by the build recipe.
+  workspaces:
+    - name: source
+  steps:
+    - name: node
+      image: registry.access.redhat.com/ubi9/nodejs-24:latest
+      workingDir: $(workspaces.source.path)
+      command: [/usr/bin/bash, -ec]
+      args: ["$(params.SCRIPT)"]

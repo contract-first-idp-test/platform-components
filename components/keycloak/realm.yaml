@@ -1,4 +1,4 @@
-apiVersion: k8s.keycloak.org/v2alpha1
+apiVersion: k8s.keycloak.org/v2beta1
 kind: KeycloakRealmImport
 metadata:
   name: platform-realm
@@ -20,10 +20,6 @@ spec:
       secret:
         name: keycloak-realm-secrets
         key: backstage-client-secret
-    MICROCKS_CLIENT_SECRET:
-      secret:
-        name: keycloak-realm-secrets
-        key: microcks-client-secret
     DEVELOPER_HUB_URL:
       secret:
         name: keycloak-realm-secrets
@@ -40,6 +36,10 @@ spec:
       secret:
         name: keycloak-realm-secrets
         key: microcks-url
+    APICURIO_UI_URL:
+      secret:
+        name: keycloak-realm-secrets
+        key: apicurio-ui-url
   realm:
     id: platform
     realm: platform
@@ -50,6 +50,18 @@ spec:
     loginWithEmailAllowed: true
     defaultRoles: []
     roles:
+      realm:
+        - name: sr-admin
+          composite: false
+        - name: sr-developer
+          composite: false
+        - name: sr-readonly
+          composite: false
+        - name: microcks-publisher
+          composite: true
+          composites:
+            client:
+              microcks-app: [manager, user]
       client:
         microcks-app:
         - name: user
@@ -63,7 +75,9 @@ spec:
           clientRole: true
     groups:
     - name: platform-maintainers
+      realmRoles: [sr-admin]
     - name: domain-maintainers
+      realmRoles: [sr-developer]
     - name: domain-contributors
     - name: domain-viewers
     - name: microcks
@@ -101,13 +115,12 @@ spec:
         - view-users
         - query-groups
         - query-users
-    - username: service-account-microcks-serviceaccount
-      enabled: true
-      serviceAccountClientId: microcks-serviceaccount
-      clientRoles:
-        microcks-app:
-        - user
-        - manager
+    # The Client Admin API creates clients with fullScopeAllowed=false. Permit only these
+    # platform roles through the built-in roles scope; a client still receives nothing
+    # unless its service account is explicitly assigned the role.
+    scopeMappings:
+      - clientScope: roles
+        roles: [sr-admin, sr-developer, sr-readonly, microcks-publisher]
     clientScopeMappings:
       microcks-app:
       - client: microcks-app-js
@@ -121,6 +134,18 @@ spec:
         - manage-users
         - manage-clients
     clients:
+    - clientId: registry-api
+      enabled: true
+      bearerOnly: true
+      publicClient: false
+    - clientId: apicurio-registry
+      enabled: true
+      publicClient: true
+      standardFlowEnabled: true
+      redirectUris:
+      - ${APICURIO_UI_URL}/*
+      webOrigins:
+      - ${APICURIO_UI_URL}
     - clientId: backstage
       enabled: true
       clientAuthenticatorType: client-secret
@@ -162,15 +187,6 @@ spec:
           access.token.claim: 'true'
           claim.name: microcks-groups
           userinfo.token.claim: 'true'
-    - clientId: microcks-serviceaccount
-      secret: ${MICROCKS_CLIENT_SECRET}
-      enabled: true
-      bearerOnly: false
-      publicClient: false
-      standardFlowEnabled: false
-      directAccessGrantsEnabled: true
-      serviceAccountsEnabled: true
-      clientAuthenticatorType: client-secret
     requiredActions:
     - alias: VERIFY_PROFILE
       name: Verify Profile

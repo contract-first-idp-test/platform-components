@@ -43,7 +43,7 @@ describe('uniform platform ApplicationSet rendering', () => {
     const resources = render(root, '.');
     expect(resources.filter(resource => resource.kind === 'Application')).toHaveLength(1);
     expect(resources.filter(resource => resource.kind === 'ApplicationSet')).toHaveLength(1);
-    expect(resources.filter(resource => resource.kind === 'AppProject')).toHaveLength(4);
+    expect(resources.filter(resource => resource.kind === 'AppProject')).toHaveLength(5);
 
     const fixture = read(root, 'catalog-info.yaml');
     const targetConfig = resources.find(resource =>
@@ -74,7 +74,7 @@ describe('uniform platform ApplicationSet rendering', () => {
   });
 
   test('uses one common Kustomize source and conservative shared sync policy', () => {
-    expect(inventory).toHaveLength(20);
+    expect(inventory).toHaveLength(21);
     expect(applicationSet.spec.generators[0].matrix.generators[0].git.files)
       .toEqual([{path: 'catalog-info.yaml'}]);
     expect(applicationSet.spec.template.spec.source).toEqual({
@@ -118,7 +118,7 @@ describe('uniform platform ApplicationSet rendering', () => {
   test('tenant admission is the only directory-rendered exception', () => {
     expect(inventory.find(item => item.name === 'tenant-admissions')).toEqual({
       name: 'tenant-admissions',
-      project: 'platform-services',
+      project: 'tenant-admissions',
       namespace: 'openshift-gitops',
       path: 'tenants',
       renderer: 'directory',
@@ -145,7 +145,7 @@ describe('uniform platform ApplicationSet rendering', () => {
     const domain = YAML.parse(read(root, 'catalog-info.yaml')).spec.platform.cluster.routerDomain;
     const keycloak = renderWithRouterDomain(root, 'components/keycloak', domain);
     expect(keycloak.find(resource => resource.kind === 'Keycloak').spec.hostname.hostname)
-      .toBe(`cf-idp-keycloak-keycloak.${domain}`);
+      .toBe(`https://cf-idp-keycloak-keycloak.${domain}`);
     expect(keycloak.find(resource => resource.kind === 'Route').spec.host)
       .toBe(`cf-idp-keycloak-keycloak.${domain}`);
 
@@ -157,6 +157,8 @@ describe('uniform platform ApplicationSet rendering', () => {
       .find(resource => resource.kind === 'ApicurioRegistry3');
     expect(apicurio.spec.app.ingress.host).toBe(`apicurio.${domain}`);
     expect(apicurio.spec.ui.ingress.host).toBe(`apicurio-ui.${domain}`);
+    expect(apicurio.spec.app.auth.authServerUrl)
+      .toBe(`https://cf-idp-keycloak-keycloak.${domain}/realms/platform`);
     expect(apicurio.spec.ui.env).toContainEqual({
       name: 'REGISTRY_API_URL', value: `https://apicurio.${domain}/apis/registry/v3`,
     });

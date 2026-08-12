@@ -3,7 +3,8 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - task-maven.yaml
+  - task-nodejs.yaml
   - task-spectral.yaml
-  - microcks-secret.yaml
   - task-microcks.yaml
+  - task-image-tag-guard.yaml
   - enable-console-plugin.yaml

@@ -25,6 +25,50 @@ Application removal is intentionally conservative: the ApplicationSet can create
 does not delete Applications. Use a component-specific, reviewed uninstall procedure for already
 installed resources.
 
+## Generated credential lifecycle
+
+`ExternalSecret/platform-generated-secrets` uses `CreatedOnce` with an orphaned, retained target.
+Ordinary reapply/reconcile does not rotate persisted consumer credentials. Deleting the
+ExternalSecret intentionally leaves the target Secret. With the installed ESO 1.2.0, deleting that
+target while the `CreatedOnce` ExternalSecret remains does not recreate it. Deleting and recreating
+the ExternalSecret restores a target but generates a new value, which can desynchronize persisted
+consumers. Back up or rotate through a component-specific procedure before either deletion.
+
+Domain publisher credentials follow a different lifecycle: the Domain Application owns their
+generators, canonical Secrets, Keycloak projections, and clients. Domain deletion removes that
+identity boundary, and re-admission can generate new client secrets. Diagnose projection with:
+
+```bash
+oc get password,externalsecret -n cf-idp-secrets
+oc get clustersecretstore
+oc get keycloakoidcclient -n keycloak
+oc get externalsecret -A | grep -E 'apicurio-client|microcks-client'
+```
+
+Never copy Secret data into tickets. A build namespace must have both its Domain label and
+`platform.contract-first.io/build-environment=true`; a non-build namespace receiving either local
+publisher Secret is a security defect.
+
+## Keycloak Operator and clients
+
+The Keycloak Subscription is manual. If identity remains pending after a clean install, locate and
+approve only the InstallPlan that owns `keycloak-operator.v26.7.1`, then verify there is one
+OperatorGroup and that its target namespace is exactly `keycloak`. `KeycloakOIDCClient` is an
+experimental upstream API in this release; its `keycloakCRName` and `secretRef` are deliberately
+same-namespace references.
+
+Useful non-secret checks are:
+
+```bash
+oc get subscription,installplan,csv -n keycloak
+oc get operatorgroup -n keycloak -o yaml
+oc get keycloak,keycloakrealmimport,keycloakoidcclient -n keycloak
+oc auth can-i create keycloakoidcclients.k8s.keycloak.org \
+  --as system:serviceaccount:<build-namespace>:pipeline -n keycloak
+```
+
+The last result must be `no`.
+
 ## Quay bootstrap
 
 On the first installation, the `quay-initialize` Job waits for Quay and creates the configured

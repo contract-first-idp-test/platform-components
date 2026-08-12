@@ -5,3 +5,4 @@ resources:
   - operand.yaml
   - rbac.yaml
   - stores.yaml
+  - generators.yaml

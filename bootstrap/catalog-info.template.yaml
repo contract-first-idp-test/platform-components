@@ -51,6 +51,14 @@ spec:
     schemaRegistry:
       apiUrl: "https://apicurio.@@ROUTER_DOMAIN@@/apis/registry/v3"
       uiUrl: "https://apicurio-ui.@@ROUTER_DOMAIN@@"
+      authServerUrl: "https://cf-idp-keycloak-keycloak.@@ROUTER_DOMAIN@@/realms/platform"
+    security:
+      keycloak:
+        namespace: keycloak
+        instanceName: cf-idp-keycloak
+        realm: platform
+      secrets:
+        namespace: cf-idp-secrets
     spectralRules:
       repositoryUrl: https://github.com/contract-first-idp/spectral-rules.git
       revision: f2a1e6ab9f428eb822c232d8f460ff1e00199113

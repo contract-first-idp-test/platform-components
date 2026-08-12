@@ -29,17 +29,40 @@ describe('platform service integration contracts', () => {
     ]);
     expect(realm.users.find(user => user.username === 'service-account-backstage')
       .serviceAccountClientId).toBe('backstage');
-    expect(realm.users.find(user =>
-      user.username === 'service-account-microcks-serviceaccount').serviceAccountClientId)
-      .toBe('microcks-serviceaccount');
+    expect(realm.users.some(user =>
+      user.username === 'service-account-microcks-serviceaccount')).toBe(false);
+    expect(realm.clients.some(client => client.clientId === 'microcks-serviceaccount')).toBe(false);
+    expect(realm.roles.realm).toEqual(expect.arrayContaining([
+      expect.objectContaining({name: 'sr-admin'}),
+      expect.objectContaining({name: 'sr-developer'}),
+      expect.objectContaining({name: 'sr-readonly'}),
+      expect.objectContaining({name: 'microcks-publisher', composite: true}),
+    ]));
+    expect(realm.scopeMappings).toContainEqual({
+      clientScope: 'roles',
+      roles: ['sr-admin', 'sr-developer', 'sr-readonly', 'microcks-publisher'],
+    });
     expect(manifest.spec.placeholders.DEMO_USER_USERNAME)
       .toEqual({secret: {name: 'keycloak-realm-secrets', key: 'demo-user-username'}});
 
-    const keycloakSecrets = YAML.parse(read(root, 'components/keycloak/external-secrets.yaml'));
-    expect(keycloakSecrets.spec.target.template.data).toMatchObject({
+    const keycloakSecrets = parseDocuments(
+      read(root, 'components/keycloak/external-secrets.yaml'));
+    const realmSecrets = keycloakSecrets.find(resource =>
+      resource.metadata.name === 'keycloak-realm-secrets');
+    expect(realmSecrets.spec.target.template.data).toMatchObject({
       'demo-user-username': '{{ .demoUserUsername }}',
       'demo-user-password': '{{ .demoUserPassword }}',
     });
+    expect(realmSecrets.spec.target.template.data).not.toHaveProperty('microcks-client-secret');
+    const adminSecret = keycloakSecrets.find(resource =>
+      resource.metadata.name === 'cf-idp-keycloak-admin');
+    expect(adminSecret.spec.target.template.data).toEqual({
+      'client-id': 'cf-idp-keycloak-admin', 'client-secret': '{{ .clientSecret }}',
+    });
+    const keycloak = YAML.parse(read(root, 'components/keycloak/keycloak.yaml'));
+    expect(keycloak.apiVersion).toBe('k8s.keycloak.org/v2beta1');
+    expect(keycloak.spec.features.enabled).toContain('client-admin-api:v2');
+    expect(keycloak.spec.bootstrapAdmin.service.secret).toBe('cf-idp-keycloak-admin');
     expect(YAML.parse(read(root, 'components/microcks/config.yaml'))
       .data['application.properties']).toContain('keycloak.realm=platform');
   });
@@ -88,8 +111,6 @@ describe('platform service integration contracts', () => {
     });
     expect(JSON.stringify(devSpaces)).not.toContain('PRIVATE_KEY');
   });
-
-  test.todo('Developer Hub trusts the mounted cluster CA without disabling TLS verification');
 
   test('Quay bootstrap and Bridge credentials preserve their ownership boundary', () => {
     const quaySecret = parseDocuments(read(root, 'components/quay/external-secret.yaml'))

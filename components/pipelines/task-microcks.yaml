@@ -1,32 +1,21 @@
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: microcks-import
+  name: microcks-cli
   namespace: tekton-tasks
+  labels:
+    app.kubernetes.io/version: latest-2025-11-28
 spec:
+  description: Run a platform-pinned Microcks CLI command supplied by a Pipeline.
   params:
-    - name: specificationFilesList
+    - name: SCRIPT
       type: string
-      default: specification.yaml:true
-    - name: image
-      type: string
-      default: quay.io/microcks/microcks-cli:0.6.0
+      description: Microcks CLI workflow script.
   workspaces:
     - name: source
   steps:
-    - name: import
-      image: $(params.image)
+    - name: microcks-cli
+      image: quay.io/microcks/microcks-cli@sha256:7c0ea4c73f68e17614512499d5d707b52fa6d2539375778efa760c10cf25aa2e
       workingDir: $(workspaces.source.path)
-      env:
-        - name: MICROCKS_URL
-          valueFrom: {secretKeyRef: {name: microcks-client, key: microcks-url}}
-        - name: MICROCKS_CLIENT_SECRET
-          valueFrom: {secretKeyRef: {name: microcks-client, key: client-secret}}
       command: [/usr/bin/bash, -ec]
-      args:
-        - |
-          microcks-cli import "$(params.specificationFilesList)" \
-            --microcksURL="${MICROCKS_URL}/api/" \
-            --keycloakClientId=microcks-serviceaccount \
-            --keycloakClientSecret="${MICROCKS_CLIENT_SECRET}" \
-            --insecure
+      args: ["$(params.SCRIPT)"]

@@ -30,6 +30,8 @@ replacements:
         fieldPaths: [spec.sourceRepos.0]
       - select: {kind: AppProject, name: platform-services}
         fieldPaths: [spec.sourceRepos.0]
+      - select: {kind: AppProject, name: tenant-admissions}
+        fieldPaths: [spec.sourceRepos.0]
   - source:
       kind: ConfigMap
       name: platform-bootstrap-settings

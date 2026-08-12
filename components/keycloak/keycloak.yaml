@@ -1,4 +1,4 @@
-apiVersion: k8s.keycloak.org/v2alpha1
+apiVersion: k8s.keycloak.org/v2beta1
 kind: Keycloak
 metadata:
   name: cf-idp-keycloak
@@ -8,8 +8,14 @@ metadata:
     platform.contract-first.io/router-domain: example.invalid
 spec:
   instances: 1
+  features:
+    enabled: [client-admin-api:v2]
+  bootstrapAdmin:
+    service:
+      secret: cf-idp-keycloak-admin
   hostname:
-    hostname: cf-idp-keycloak-keycloak.invalid
+    hostname: https://cf-idp-keycloak-keycloak.invalid
+    strict: true
   db:
     vendor: postgres
     host: cf-idp-keycloak-db-primary
