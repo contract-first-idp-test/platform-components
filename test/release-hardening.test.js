@@ -110,6 +110,12 @@ describe('release-hardening platform contracts', () => {
     const microcks = tasks.find(item => item.metadata.name === 'microcks-cli');
     expect(microcks.spec.params.map(item => item.name)).toEqual(['SCRIPT']);
     expect(microcks.spec.steps[0].image).toMatch(/microcks-cli@sha256:/);
+    const imageTagGuard = tasks.find(item => item.metadata.name === 'assert-image-tag-compatible');
+    expect(imageTagGuard.spec.results.find(result => result.name === 'destinationDigest'))
+      .toEqual({
+        name: 'destinationDigest', type: 'string',
+        description: 'Existing destination digest, if present.',
+      });
     expect(exists(root, 'components/pipelines/microcks-secret.yaml')).toBe(false);
   });
 

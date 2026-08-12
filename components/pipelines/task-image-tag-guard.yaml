@@ -10,7 +10,7 @@ spec:
     - {name: destination-image, type: string}
   results:
     - {name: sourceDigest, type: string, description: Digest resolved from the source image.}
-    - {name: destinationDigest, type: string, description: Existing destination digest, if present.}
+    - {name: destinationDigest, type: string, description: 'Existing destination digest, if present.'}
     - {name: destinationExists, type: string, description: Whether the destination tag already exists.}
   steps:
     - name: compare-digests
