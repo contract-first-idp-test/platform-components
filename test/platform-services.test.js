@@ -15,10 +15,9 @@ describe('platform service integration contracts', () => {
 
   test('Keycloak keeps the platform realm, human roles, and machine identities', () => {
     const rendered = render(root, 'components/keycloak');
-    expect(rendered.filter(resource => resource.kind !== 'Namespace')
-      .every(resource => resource.metadata.namespace === 'cf-idp-keycloak')).toBe(true);
-    expect(rendered.find(resource => resource.kind === 'Namespace').metadata.name)
-      .toBe('cf-idp-keycloak');
+    expect(rendered.every(resource =>
+      resource.metadata.namespace === 'cf-idp-keycloak')).toBe(true);
+    expect(rendered.some(resource => resource.kind === 'Namespace')).toBe(false);
     const manifest = YAML.parse(read(root, 'components/keycloak/realm.yaml'));
     const realm = manifest.spec.realm;
     expect(realm).toMatchObject({id: 'platform', realm: 'platform', displayName: 'Platform'});

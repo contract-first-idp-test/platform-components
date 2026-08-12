@@ -101,17 +101,22 @@ describe('uniform platform ApplicationSet rendering', () => {
     });
   });
 
-  test('every platform path is a valid Kustomize root with explicit namespace ownership', () => {
+  test('every platform path is valid and each non-shared destination has one namespace owner', () => {
     const sharedNamespaces = new Set(['openshift-operators', 'openshift-gitops']);
+    const namespaceOwners = new Map();
     for (const item of inventory) {
       expect(exists(root, item.path)).toBe(true);
       if (item.renderer === 'directory') continue;
       expect(exists(root, path.join(item.path, 'kustomization.yaml'))).toBe(true);
       const resources = render(root, item.path);
-      if (!sharedNamespaces.has(item.namespace)) {
-        expect(resources.some(resource =>
-          resource.kind === 'Namespace' && resource.metadata.name === item.namespace)).toBe(true);
+      for (const namespace of resources.filter(resource => resource.kind === 'Namespace')) {
+        const owners = namespaceOwners.get(namespace.metadata.name) || [];
+        namespaceOwners.set(namespace.metadata.name, [...owners, item.name]);
       }
+    }
+    for (const namespace of new Set(inventory.map(item => item.namespace))) {
+      if (sharedNamespaces.has(namespace)) continue;
+      expect(namespaceOwners.get(namespace)).toHaveLength(1);
     }
   });
 
