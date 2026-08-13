@@ -28,7 +28,7 @@ You need:
    git clone git@github.com:YOUR_ORGANIZATION/platform-components.git
    cd platform-components
    git fetch --tags
-   git switch -c main v1.1.1
+   git switch -c main v1.1.2
    ```
 
 2. Configure the workshop target.
@@ -48,7 +48,7 @@ You need:
    ```
 
    Create or switch to the mutable branch before running the helper; never configure from detached
-   HEAD. The helper records `v1.1.1` as the immutable distribution while it records the actual Git
+   HEAD. The helper records `v1.1.2` as the immutable distribution while it records the actual Git
    branch (`main` above) as the configuration and tenant-admission target. It generates
    `configuration/catalog-info.yaml`, `configuration/platform-distribution.yaml`, and the bootstrap
    configuration coordinates. The generated target is the source of truth for this workshop. It contains the cluster

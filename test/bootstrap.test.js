@@ -88,7 +88,7 @@ describe('platform target bootstrap', () => {
       expect(catalog.spec.platform.distribution)
         .toEqual({
           repositoryUrl: 'https://github.com/fixture-org/platform-components.git',
-          version: '1.1.1', revision: 'v1.1.1',
+          version: '1.1.2', revision: 'v1.1.2',
         });
       expect(catalog.spec.platform.tenantAdmission.branch).toBe('test');
       expect(catalog.spec.platform.dependencies.developerCharts).toMatchObject({
@@ -130,7 +130,7 @@ describe('platform target bootstrap', () => {
         resource.kind === 'Application' && resource.metadata.name === 'platform-root');
       expect(rootApplication.spec.source).toMatchObject({
         repoURL: 'https://github.com/fixture-org/platform-components.git',
-        targetRevision: 'v1.1.1',
+        targetRevision: 'v1.1.2',
         path: 'bootstrap/root',
       });
       expect(rootApplication.spec.source.kustomize.patches[0].patch).toContain(

@@ -83,17 +83,18 @@ spec:
             maxDuration: 2m
   templatePatch: |
     spec:
-      {{- if eq (get . "source" | default "distribution") "configuration" }}
+      {{- if or (eq (get . "source" | default "distribution") "configuration") (eq (get . "renderer" | default "kustomize") "directory") }}
       source:
+      {{- if eq (get . "source" | default "distribution") "configuration" }}
         repoURL: '{{ .spec.platform.configuration.repositoryUrl }}'
         targetRevision: '{{ .spec.platform.configuration.revision }}'
       {{- end }}
       {{- if eq (get . "renderer" | default "kustomize") "directory" }}
-      source:
         kustomize: null
         directory:
           recurse: true
           exclude: '*/admission.yaml'
+      {{- end }}
       {{- end }}
       syncPolicy:
         syncOptions:

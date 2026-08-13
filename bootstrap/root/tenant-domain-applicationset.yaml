@@ -19,7 +19,7 @@ spec:
           - git:
               repoURL: REPLACED_BY_ROOT_KUSTOMIZATION
               revision: REPLACED_BY_ROOT_KUSTOMIZATION
-              pathParamPrefix: admission
+              pathParamPrefix: admissionPath
               files:
                 - path: tenants/*/admission.yaml
   template:

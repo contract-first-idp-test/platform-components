@@ -7,12 +7,12 @@ describe('platform-components release contract', () => {
   const target = YAML.parse(read(root, 'test/fixtures/catalog-info.yaml')).spec.platform;
 
   test('versions only the platform contract it owns', () => {
-    expect(release).toEqual({version: '1.1.1'});
+    expect(release).toEqual({version: '1.1.2'});
     expect(release).not.toHaveProperty('requires');
     expect(target.distribution).toEqual({
       repositoryUrl: 'https://github.com/fixture-org/platform-components.git',
       version: release.version,
-      revision: 'v1.1.1',
+      revision: 'v1.1.2',
     });
     expect(target.configuration.revision).toBe('test');
     expect(target.configuration.revision).not.toBe(target.distribution.revision);
@@ -54,6 +54,6 @@ describe('platform-components release contract', () => {
     };
     expect(upgraded.distribution).toEqual(target.distribution);
     expect(upgraded.configuration.revision).toBe(target.configuration.revision);
-    expect(release.version).toBe('1.1.1');
+    expect(release.version).toBe('1.1.2');
   });
 });
