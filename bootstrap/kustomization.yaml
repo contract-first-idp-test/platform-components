@@ -6,8 +6,8 @@ configMapGenerator:
   - name: platform-configuration-bootstrap-settings
     namespace: openshift-gitops
     literals:
-      - PLATFORM_CONFIGURATION_REPO_URL=REPLACE_WITH_CONFIGURATION_REPOSITORY_URL
-      - PLATFORM_CONFIGURATION_REVISION=REPLACE_WITH_CONFIGURATION_BRANCH
+      - PLATFORM_CONFIGURATION_REPO_URL=https://github.com/contract-first-idp-test/platform-components.git
+      - PLATFORM_CONFIGURATION_REVISION=main
 generatorOptions:
   disableNameSuffixHash: true
 replacements:
