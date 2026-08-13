@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: tenant-customer-experience-admission
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  description: Parent Domain attachment for customer-experience.
+  sourceRepos:
+    - https://github.com/contract-first-idp-test/developer-charts.git
+    - https://github.com/contract-first-idp-test/customer-experience-domain.git
+    - https://github.com/contract-first-idp-test/platform-components.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: openshift-gitops
+  clusterResourceWhitelist:
+    - {group: external-secrets.io, kind: ClusterSecretStore}
+  namespaceResourceWhitelist:
+    - {group: "", kind: ServiceAccount}
+    - {group: argoproj.io, kind: AppProject}
+    - {group: argoproj.io, kind: ApplicationSet}
+    - {group: external-secrets.io, kind: ExternalSecret}
+    - {group: generators.external-secrets.io, kind: Password}
+    - {group: k8s.keycloak.org, kind: KeycloakOIDCClient}
+    - {group: rbac.authorization.k8s.io, kind: Role}
+    - {group: rbac.authorization.k8s.io, kind: RoleBinding}
