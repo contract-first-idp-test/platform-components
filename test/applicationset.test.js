@@ -40,13 +40,18 @@ describe('uniform platform ApplicationSet rendering', () => {
   afterAll(() => repository.cleanup());
 
   test('configured fixture renders the complete platform root', () => {
-    const resources = render(root, '.');
-    expect(resources.filter(resource => resource.kind === 'Application')).toHaveLength(1);
-    expect(resources.filter(resource => resource.kind === 'ApplicationSet')).toHaveLength(1);
-    expect(resources.filter(resource => resource.kind === 'AppProject')).toHaveLength(5);
+    const bootstrap = render(root, '.');
+    expect(bootstrap.filter(resource => resource.kind === 'Application')).toHaveLength(1);
+    expect(bootstrap.find(resource => resource.kind === 'Application').metadata.name)
+      .toBe('platform-configuration');
+    const configuration = render(root, 'configuration');
+    expect(configuration.filter(resource => resource.kind === 'Application')).toHaveLength(1);
+    const distribution = render(root, 'bootstrap/root');
+    expect(distribution.filter(resource => resource.kind === 'ApplicationSet')).toHaveLength(2);
+    expect(distribution.filter(resource => resource.kind === 'AppProject')).toHaveLength(5);
 
-    const fixture = read(root, 'catalog-info.yaml');
-    const targetConfig = resources.find(resource =>
+    const fixture = read(root, 'configuration/catalog-info.yaml');
+    const targetConfig = configuration.find(resource =>
       resource.kind === 'Secret' && resource.metadata.name === 'platform-target-config');
     expect(Buffer.from(targetConfig.data['platform.yaml'], 'base64').toString()).toBe(fixture);
   });
@@ -76,10 +81,10 @@ describe('uniform platform ApplicationSet rendering', () => {
   test('uses one common Kustomize source and conservative shared sync policy', () => {
     expect(inventory).toHaveLength(21);
     expect(applicationSet.spec.generators[0].matrix.generators[0].git.files)
-      .toEqual([{path: 'catalog-info.yaml'}]);
+      .toEqual([{path: 'configuration/catalog-info.yaml'}]);
     expect(applicationSet.spec.template.spec.source).toEqual({
-      repoURL: '{{ .spec.platform.configuration.repositoryUrl }}',
-      targetRevision: '{{ .spec.platform.configuration.revision }}',
+      repoURL: '{{ .spec.platform.distribution.repositoryUrl }}',
+      targetRevision: '{{ .spec.platform.distribution.revision }}',
       path: '{{ .path }}',
       kustomize: {commonAnnotations: {
         'platform.contract-first.io/router-domain':
@@ -127,12 +132,29 @@ describe('uniform platform ApplicationSet rendering', () => {
       namespace: 'openshift-gitops',
       path: 'tenants',
       renderer: 'directory',
+      source: 'configuration',
     });
     expect(inventory.filter(item => item.name !== 'tenant-admissions')
       .every(item => item.renderer === undefined)).toBe(true);
     expect(applicationSet.spec.templatePatch).toMatch(
       /renderer" \| default "kustomize"\) "directory"[\s\S]*kustomize: null[\s\S]*directory:\s*\n\s+recurse: true/,
     );
+    expect(applicationSet.spec.templatePatch).toContain("exclude: '*/admission.yaml'");
+  });
+
+  test('existing Domain Applications continuously follow the selected chart tag', () => {
+    const domainSet = YAML.parse(read(root, 'bootstrap/root/tenant-domain-applicationset.yaml'));
+    expect(domainSet.spec.generators[0].matrix.generators[0].git.files)
+      .toEqual([{path: 'configuration/catalog-info.yaml'}]);
+    expect(domainSet.spec.generators[0].matrix.generators[1].git.files)
+      .toEqual([{path: 'tenants/*/admission.yaml'}]);
+    expect(domainSet.spec.template.spec.sources[0]).toMatchObject({
+      repoURL: '{{ .spec.platform.dependencies.developerCharts.repositoryUrl }}',
+      targetRevision: '{{ .spec.platform.dependencies.developerCharts.revision }}',
+      path: 'charts/domain/environment',
+    });
+    expect(read(root, 'bootstrap/root/tenant-domain-applicationset.yaml'))
+      .not.toMatch(/targetRevision: v[0-9]+\.[0-9]+\.[0-9]+/);
   });
 
   test('contains no component-specific or external runtime renderer logic', () => {
@@ -147,7 +169,8 @@ describe('uniform platform ApplicationSet rendering', () => {
   });
 
   test('component-local replacements interpret the fixture router domain', () => {
-    const domain = YAML.parse(read(root, 'catalog-info.yaml')).spec.platform.cluster.routerDomain;
+    const domain = YAML.parse(read(root, 'configuration/catalog-info.yaml'))
+      .spec.platform.cluster.routerDomain;
     const keycloak = renderWithRouterDomain(root, 'components/keycloak', domain);
     expect(keycloak.find(resource => resource.kind === 'Keycloak').spec.hostname.hostname)
       .toBe(`https://cf-idp-keycloak-keycloak.${domain}`);

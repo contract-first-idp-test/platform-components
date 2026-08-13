@@ -16,5 +16,12 @@ spec:
       secrets:
         - {name: rhdh-secrets}
         - {name: backstage-cluster-viewer-token, key: token}
+    extraFiles:
+      configMaps:
+        - name: cf-idp-compatibility-action
+          mountPath: /opt/app-root/src/local-plugins/contract-first-idp-compatibility
+          containers:
+            - backstage-backend
+            - install-dynamic-plugins
     route: {enabled: true}
   database: {enableLocalDb: true}

@@ -8,6 +8,8 @@ data:
     includes:
       - dynamic-plugins.default.yaml
     plugins:
+      - package: ./local-plugins/contract-first-idp-compatibility
+        disabled: false
       - package: ./dynamic-plugins/dist/backstage-community-plugin-catalog-backend-module-keycloak-dynamic
         disabled: false
       - package: ./dynamic-plugins/dist/backstage-plugin-scaffolder-backend-module-github-dynamic

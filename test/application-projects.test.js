@@ -33,20 +33,21 @@ describe('ApplicationSet inventory AppProject permissions', () => {
   let repository;
   let root;
   let projects;
-  let platformRepo;
+  let distributionRepo;
+  let configurationRepo;
   let destinationServer;
 
   beforeAll(() => {
     repository = createConfiguredRepository();
     root = repository.root;
-    const renderedRoot = render(root, '.');
-    const applicationSet = renderedRoot.find(resource => resource.kind === 'ApplicationSet');
-    projects = new Map(renderedRoot
+    const renderedDistribution = render(root, 'bootstrap/root');
+    projects = new Map(renderedDistribution
       .filter(resource => resource.kind === 'AppProject')
       .map(project => [project.metadata.name, project]));
-    platformRepo = applicationSet.spec.generators[0].matrix.generators[0].git.repoURL;
-    destinationServer = YAML.parse(read(root, 'catalog-info.yaml'))
-      .spec.platform.argocd.destinationServer;
+    const target = YAML.parse(read(root, 'configuration/catalog-info.yaml')).spec.platform;
+    distributionRepo = target.distribution.repositoryUrl;
+    configurationRepo = target.configuration.repositoryUrl;
+    destinationServer = target.argocd.destinationServer;
   });
 
   afterAll(() => repository.cleanup());
@@ -56,7 +57,8 @@ describe('ApplicationSet inventory AppProject permissions', () => {
     (_name, item) => {
       const project = projects.get(item.project);
       expect(project).toBeDefined();
-      expect(project.spec.sourceRepos).toContain(platformRepo);
+      expect(project.spec.sourceRepos).toContain(
+        item.source === 'configuration' ? configurationRepo : distributionRepo);
       expect(permitsDestination(project, destinationServer, item.namespace)).toBe(true);
 
       if (item.renderer === 'directory') {

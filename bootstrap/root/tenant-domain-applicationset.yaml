@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: tenant-domain-applications
+  namespace: openshift-gitops
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+    - matrix:
+        generators:
+          - git:
+              repoURL: REPLACED_BY_ROOT_KUSTOMIZATION
+              revision: REPLACED_BY_ROOT_KUSTOMIZATION
+              pathParamPrefix: target
+              files:
+                - path: configuration/catalog-info.yaml
+          - git:
+              repoURL: REPLACED_BY_ROOT_KUSTOMIZATION
+              revision: REPLACED_BY_ROOT_KUSTOMIZATION
+              pathParamPrefix: admission
+              files:
+                - path: tenants/*/admission.yaml
+  template:
+    metadata:
+      name: '{{ .admission.name }}-domain'
+      namespace: openshift-gitops
+      annotations:
+        argocd.argoproj.io/sync-wave: "1"
+    spec:
+      project: '{{ .admission.project }}'
+      sources:
+        - repoURL: '{{ .spec.platform.dependencies.developerCharts.repositoryUrl }}'
+          targetRevision: '{{ .spec.platform.dependencies.developerCharts.revision }}'
+          path: charts/domain/environment
+          helm:
+            valueFiles:
+              - '$platform/{{ .spec.platform.configuration.valuesPath }}'
+              - $domain/catalog-info.yaml
+        - repoURL: '{{ .admission.repositoryUrl }}'
+          targetRevision: main
+          ref: domain
+        - repoURL: '{{ .spec.platform.configuration.repositoryUrl }}'
+          targetRevision: '{{ .spec.platform.configuration.revision }}'
+          ref: platform
+      destination:
+        server: '{{ .spec.platform.argocd.destinationServer }}'
+        namespace: '{{ .spec.platform.argocd.namespace }}'
+      syncPolicy:
+        automated: {prune: true, selfHeal: true}
+  syncPolicy:
+    applicationsSync: create-update
+    preserveResourcesOnDeletion: true

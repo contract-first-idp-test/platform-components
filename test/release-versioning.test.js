@@ -4,21 +4,26 @@ const {repositoryRoot: root} = require('./helpers/paths');
 
 describe('platform-components release contract', () => {
   const release = YAML.parse(read(root, 'release.yaml'));
-  const target = YAML.parse(read(root, 'catalog-info.yaml')).spec.platform;
+  const target = YAML.parse(read(root, 'test/fixtures/catalog-info.yaml')).spec.platform;
 
   test('versions only the platform contract it owns', () => {
-    expect(release).toEqual({version: '1.1.0'});
+    expect(release).toEqual({version: '1.1.1'});
     expect(release).not.toHaveProperty('requires');
-    expect(target.distribution).toEqual({version: release.version, revision: 'v1.1.0'});
-    expect(target.configuration.revision).toBe(target.distribution.revision);
+    expect(target.distribution).toEqual({
+      repositoryUrl: 'https://github.com/fixture-org/platform-components.git',
+      version: release.version,
+      revision: 'v1.1.1',
+    });
+    expect(target.configuration.revision).toBe('test');
+    expect(target.configuration.revision).not.toBe(target.distribution.revision);
   });
 
   test('publishes exact independently versioned consumer coordinates', () => {
     expect(target.dependencies.developerCharts).toMatchObject({
-      revision: 'v1.0.1', version: '1.0.1',
+      revision: 'v1.0.2', version: '1.0.2',
     });
     expect(target.dependencies.softwareTemplates).toMatchObject({
-      revision: 'v1.1.0', version: '1.1.0', catalogPath: 'catalog-info.yaml',
+      revision: 'v1.1.1', version: '1.1.1', catalogPath: 'catalog-info.yaml',
     });
     expect(target.charts).toEqual(target.dependencies.developerCharts);
     for (const coordinate of [
@@ -36,5 +41,19 @@ describe('platform-components release contract', () => {
     expect(externalSecret).toContain('$dependency.revision');
     expect(release).not.toHaveProperty('requires.softwareTemplates');
     expect(release).not.toHaveProperty('requires.developerCharts');
+  });
+
+  test('dependency patches change installation selection without changing distribution identity', () => {
+    const upgraded = structuredClone(target);
+    upgraded.dependencies.developerCharts = {
+      ...upgraded.dependencies.developerCharts, revision: 'v1.0.9', version: '1.0.9',
+    };
+    upgraded.charts = {...upgraded.dependencies.developerCharts};
+    upgraded.dependencies.softwareTemplates = {
+      ...upgraded.dependencies.softwareTemplates, revision: 'v1.1.9', version: '1.1.9',
+    };
+    expect(upgraded.distribution).toEqual(target.distribution);
+    expect(upgraded.configuration.revision).toBe(target.configuration.revision);
+    expect(release.version).toBe('1.1.1');
   });
 });

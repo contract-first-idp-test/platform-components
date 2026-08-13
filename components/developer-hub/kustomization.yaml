@@ -7,3 +7,12 @@ resources:
   - dynamic-plugins.yaml
   - app-config.yaml
   - backstage.yaml
+configMapGenerator:
+  - name: cf-idp-compatibility-action
+    namespace: developer-hub
+    files:
+      - compatibility-action/package.json
+      - compatibility-action/index.cjs.js
+      - compatibility-action/compatibility.cjs
+generatorOptions:
+  disableNameSuffixHash: true

@@ -1,27 +1,24 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - application.yaml
   - projects.yaml
   - platform-applicationset.yaml
+  - tenant-domain-applicationset.yaml
 configMapGenerator:
-  - name: platform-bootstrap-settings
+  - name: platform-distribution-settings
     namespace: openshift-gitops
     literals:
-      - PLATFORM_REPO_URL=https://github.com/contract-first-idp-test/platform-components.git
-      - PLATFORM_REVISION=v1.1.0
+      - PLATFORM_DISTRIBUTION_REPO_URL=REPLACE_WITH_DISTRIBUTION_REPOSITORY_URL
+      - PLATFORM_CONFIGURATION_REPO_URL=REPLACE_WITH_CONFIGURATION_REPOSITORY_URL
+      - PLATFORM_CONFIGURATION_REVISION=REPLACE_WITH_CONFIGURATION_BRANCH
 generatorOptions:
   disableNameSuffixHash: true
 replacements:
   - source:
       kind: ConfigMap
-      name: platform-bootstrap-settings
-      fieldPath: data.PLATFORM_REPO_URL
+      name: platform-distribution-settings
+      fieldPath: data.PLATFORM_DISTRIBUTION_REPO_URL
     targets:
-      - select: {kind: Application, name: platform-root}
-        fieldPaths: [spec.source.repoURL]
-      - select: {kind: ApplicationSet, name: platform-applications}
-        fieldPaths: [spec.generators.0.matrix.generators.0.git.repoURL]
       - select: {kind: AppProject, name: platform}
         fieldPaths: [spec.sourceRepos.0]
       - select: {kind: AppProject, name: platform-infrastructure}
@@ -30,14 +27,27 @@ replacements:
         fieldPaths: [spec.sourceRepos.0]
       - select: {kind: AppProject, name: platform-services}
         fieldPaths: [spec.sourceRepos.0]
+  - source:
+      kind: ConfigMap
+      name: platform-distribution-settings
+      fieldPath: data.PLATFORM_CONFIGURATION_REPO_URL
+    targets:
+      - select: {kind: ApplicationSet, name: platform-applications}
+        fieldPaths: [spec.generators.0.matrix.generators.0.git.repoURL]
+      - select: {kind: ApplicationSet, name: tenant-domain-applications}
+        fieldPaths:
+          - spec.generators.0.matrix.generators.0.git.repoURL
+          - spec.generators.0.matrix.generators.1.git.repoURL
       - select: {kind: AppProject, name: tenant-admissions}
         fieldPaths: [spec.sourceRepos.0]
   - source:
       kind: ConfigMap
-      name: platform-bootstrap-settings
-      fieldPath: data.PLATFORM_REVISION
+      name: platform-distribution-settings
+      fieldPath: data.PLATFORM_CONFIGURATION_REVISION
     targets:
-      - select: {kind: Application, name: platform-root}
-        fieldPaths: [spec.source.targetRevision]
       - select: {kind: ApplicationSet, name: platform-applications}
         fieldPaths: [spec.generators.0.matrix.generators.0.git.revision]
+      - select: {kind: ApplicationSet, name: tenant-domain-applications}
+        fieldPaths:
+          - spec.generators.0.matrix.generators.0.git.revision
+          - spec.generators.0.matrix.generators.1.git.revision

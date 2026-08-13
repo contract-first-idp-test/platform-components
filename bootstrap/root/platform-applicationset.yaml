@@ -15,7 +15,7 @@ spec:
               revision: REPLACED_BY_ROOT_KUSTOMIZATION
               pathParamPrefix: target
               files:
-                - path: catalog-info.yaml
+                - path: configuration/catalog-info.yaml
           - list:
               elements:
                 # Required foundation. Both entries are required for the approved ESO secret flow.
@@ -51,7 +51,7 @@ spec:
                 - {name: developer-hub, project: platform-services, namespace: developer-hub, path: components/developer-hub}
 
                 # Tenant support. Admission manifests reference the shared platform services.
-                - {name: tenant-admissions, project: tenant-admissions, namespace: openshift-gitops, path: tenants, renderer: directory}
+                - {name: tenant-admissions, project: tenant-admissions, namespace: openshift-gitops, path: tenants, renderer: directory, source: configuration}
   template:
     metadata:
       name: '{{ .name }}'
@@ -65,8 +65,8 @@ spec:
         server: '{{ .spec.platform.argocd.destinationServer }}'
         namespace: '{{ .namespace }}'
       source:
-        repoURL: '{{ .spec.platform.configuration.repositoryUrl }}'
-        targetRevision: '{{ .spec.platform.configuration.revision }}'
+        repoURL: '{{ .spec.platform.distribution.repositoryUrl }}'
+        targetRevision: '{{ .spec.platform.distribution.revision }}'
         path: '{{ .path }}'
         kustomize:
           commonAnnotations:
@@ -83,11 +83,17 @@ spec:
             maxDuration: 2m
   templatePatch: |
     spec:
+      {{- if eq (get . "source" | default "distribution") "configuration" }}
+      source:
+        repoURL: '{{ .spec.platform.configuration.repositoryUrl }}'
+        targetRevision: '{{ .spec.platform.configuration.revision }}'
+      {{- end }}
       {{- if eq (get . "renderer" | default "kustomize") "directory" }}
       source:
         kustomize: null
         directory:
           recurse: true
+          exclude: '*/admission.yaml'
       {{- end }}
       syncPolicy:
         syncOptions:

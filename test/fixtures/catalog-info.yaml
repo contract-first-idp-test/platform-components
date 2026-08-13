@@ -11,15 +11,16 @@ spec:
   type: contract-first-idp-target
   platform:
     distribution:
-      version: 1.1.0
-      revision: test
+      repositoryUrl: https://github.com/fixture-org/platform-components.git
+      version: 1.1.1
+      revision: v1.1.1
     configuration:
       host: "github.com"
       organization: "fixture-org"
       repository: "platform-components"
       repositoryUrl: "https://github.com/fixture-org/platform-components.git"
       revision: "test"
-      valuesPath: catalog-info.yaml
+      valuesPath: configuration/catalog-info.yaml
     tenantAdmission:
       branch: "test"
       path: tenants
@@ -41,17 +42,17 @@ spec:
         organization: contract-first-idp-test
         repository: software-templates
         repositoryUrl: https://github.com/contract-first-idp-test/software-templates.git
-        revision: v1.1.0
-        version: 1.1.0
+        revision: v1.1.1
+        version: 1.1.1
         catalogPath: catalog-info.yaml
       developerCharts:
         repositoryUrl: https://github.com/contract-first-idp-test/developer-charts.git
-        revision: v1.0.1
-        version: 1.0.1
+        revision: v1.0.2
+        version: 1.0.2
     charts:
       repositoryUrl: https://github.com/contract-first-idp-test/developer-charts.git
-      revision: v1.0.1
-      version: 1.0.1
+      revision: v1.0.2
+      version: 1.0.2
     schemaRegistry:
       apiUrl: "https://apicurio.apps.fixture.example/apis/registry/v3"
       uiUrl: "https://apicurio-ui.apps.fixture.example"
