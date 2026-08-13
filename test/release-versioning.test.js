@@ -51,4 +51,18 @@ describe('platform-components release policy', () => {
     expect(read(root, 'components/developer-hub/dynamic-plugins.yaml'))
       .not.toContain('contract-first-idp-compatibility');
   });
+
+  test('keeps the admitted workshop Domain permissions independent of release selection', () => {
+    const project = YAML.parse(read(root, 'tenants/customer-experience/project.yaml'));
+    expect(project.spec.destinations.map(destination => destination.namespace)).toEqual([
+      'openshift-gitops', 'cf-idp-keycloak', 'cf-idp-secrets',
+    ]);
+    expect(project.spec.clusterResourceWhitelist).toContainEqual({
+      group: 'external-secrets.io', kind: 'ClusterSecretStore',
+    });
+    expect(project.spec.namespaceResourceWhitelist).toEqual(expect.arrayContaining([
+      {group: 'external-secrets.io', kind: 'ExternalSecret'},
+      {group: 'k8s.keycloak.org', kind: 'KeycloakOIDCClient'},
+    ]));
+  });
 });
