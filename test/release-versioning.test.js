@@ -56,4 +56,13 @@ describe('platform-components release contract', () => {
     expect(upgraded.configuration.revision).toBe(target.configuration.revision);
     expect(release.version).toBe('1.1.2');
   });
+
+  test('admits the existing Domain resources in their platform namespaces', () => {
+    const project = YAML.parse(read(root, 'tenants/customer-experience/project.yaml'));
+    expect(project.spec.destinations).toEqual(expect.arrayContaining([
+      {server: 'https://kubernetes.default.svc', namespace: 'openshift-gitops'},
+      {server: 'https://kubernetes.default.svc', namespace: 'cf-idp-keycloak'},
+      {server: 'https://kubernetes.default.svc', namespace: 'cf-idp-secrets'},
+    ]));
+  });
 });
