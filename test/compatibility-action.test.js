@@ -52,6 +52,6 @@ describe('CF-IDP scaffolder compatibility action', () => {
     const plugins = YAML.parse(fs.readFileSync(
       path.join(root, 'components/developer-hub/dynamic-plugins.yaml'), 'utf8'));
     expect(plugins.data['dynamic-plugins.yaml'])
-      .toContain('package: ./local-plugins/contract-first-idp-compatibility');
+      .toContain('package: ./local-plugins/contract-first-idp-compatibility/..data');
   });
 });

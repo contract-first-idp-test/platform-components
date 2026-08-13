@@ -28,8 +28,8 @@ spec:
   platform:
     distribution:
       repositoryUrl: https://github.com/example/platform-components.git
-      version: 1.1.2
-      revision: v1.1.2
+      version: 1.1.3
+      revision: v1.1.3
     configuration:
       repositoryUrl: https://github.com/example/platform-components.git
       revision: main
@@ -48,11 +48,11 @@ exact runtime implementation coordinate selected by the platform target. The leg
 alias remains equal to it for the v1 chart values contract.
 
 The `platform-configuration` Argo Application follows `main` and owns the PlatformTarget Secret
-plus an exact `platform-root` distribution Application. `platform-root` follows `v1.1.2` and owns
+plus an exact `platform-root` distribution Application. `platform-root` follows `v1.1.3` and owns
 the implementation ApplicationSets. Those ApplicationSets read target data from `main`, but render
 platform components from the exact distribution tag. Consequently, selecting developer-charts
 `v1.0.1 -> v1.0.2` or software-templates `v1.1.0 -> v1.1.1` changes only configuration. Selecting
-platform-components `v1.1.1 -> v1.1.2` deliberately changes the distribution Application; compatible
+platform-components `v1.1.2 -> v1.1.3` deliberately changes the distribution Application; compatible
 chart and template tags do not move.
 
 An independent patch sequence can therefore be:

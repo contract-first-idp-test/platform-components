@@ -12,8 +12,8 @@ spec:
   platform:
     distribution:
       repositoryUrl: https://github.com/fixture-org/platform-components.git
-      version: 1.1.2
-      revision: v1.1.2
+      version: 1.1.3
+      revision: v1.1.3
     configuration:
       host: "github.com"
       organization: "fixture-org"

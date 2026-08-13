@@ -26,7 +26,7 @@ function createRepository(configured) {
       path.join(root, 'bootstrap/platform-distribution.template.yaml'), 'utf8')
       .replaceAll('@@PLATFORM_DISTRIBUTION_REPO_URL@@',
         'https://github.com/fixture-org/platform-components.git')
-      .replaceAll('@@PLATFORM_DISTRIBUTION_REVISION@@', 'v1.1.2')
+      .replaceAll('@@PLATFORM_DISTRIBUTION_REVISION@@', 'v1.1.3')
       .replaceAll('@@PLATFORM_REPO_URL@@',
         'https://github.com/fixture-org/platform-components.git')
       .replaceAll('@@PLATFORM_CONFIGURATION_REVISION@@', 'test');
