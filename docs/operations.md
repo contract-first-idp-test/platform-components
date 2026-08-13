@@ -57,21 +57,25 @@ support for declarative `KeycloakOIDCClient`, not permanent patch immutability. 
 Keycloak instance, realm imports, and clients live only in `cf-idp-keycloak`. Existing workshop
 identity infrastructure is outside CF-IDP ownership.
 
-Before installing or changing a Keycloak operator, compare effective scopes from CSV
+CF-IDP guarantees only that its own OperatorGroup is namespace-scoped to `cf-idp-keycloak`; it does
+not inspect or manage other Operators. The environmental coexistence requirement is that another
+Keycloak Operator must not effectively watch `cf-idp-keycloak`, and shared CRD versions must remain
+compatible. Before installing or changing a Keycloak Operator, compare effective scopes from CSV
 `olm.targetNamespaces` annotations and runtime controller configuration. A manifest's requested
-`OperatorGroup.spec.targetNamespaces` alone is insufficient. The installer preflight blocks another
-Keycloak-providing CSV whose effective scope includes `cf-idp-keycloak`. Shared Keycloak CRDs are
-cluster-scoped, so confirm served/storage versions and recheck every pre-existing Keycloak operand
-after an operator installation or upgrade.
+`OperatorGroup.spec.targetNamespaces` alone is insufficient. Shared Keycloak CRDs are cluster-scoped,
+so confirm served/storage versions and recheck every pre-existing Keycloak operand after an operator
+installation or upgrade.
 
 `KeycloakOIDCClient` is an experimental upstream API in this release; its `keycloakCRName` and
 `secretRef` are deliberately same-namespace references.
 
-Useful non-secret checks are:
+Useful non-secret, optional coexistence checks are:
 
 ```bash
 oc get subscription,installplan,csv -n cf-idp-keycloak
 oc get operatorgroup -n cf-idp-keycloak -o yaml
+oc get csv -A \
+  -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,TARGETS:.metadata.annotations.olm\.targetNamespaces'
 oc get keycloak,keycloakrealmimport,keycloakoidcclient -n cf-idp-keycloak
 oc get crd keycloaks.k8s.keycloak.org \
   keycloakrealmimports.k8s.keycloak.org \

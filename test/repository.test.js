@@ -44,8 +44,8 @@ function expectConfiguredPlatformTarget(repository) {
   const configuration = catalog.spec.platform.configuration;
   expect(catalog.metadata.annotations['github.com/project-slug'])
     .toBe(`${configuration.organization}/${configuration.repository}`);
-  expect(catalog.spec.platform.tenantAdmission.branch).toMatch(/^(main|test)$/);
-  expect(configuration.revision).toMatch(/^(main|test)$/);
+  expect(catalog.spec.platform.tenantAdmission.branch).toMatch(/^(workshop|test)$/);
+  expect(configuration.revision).toMatch(/^(workshop|test)$/);
   expect(configuration.revision).not.toBe(catalog.spec.platform.distribution.revision);
 }
 
@@ -65,7 +65,7 @@ describe('fork-ready repository distribution', () => {
 
   test('supports both pristine distribution and configured-fork layouts', () => {
     for (const obsolete of [
-      'argocd', 'profiles', 'targets', 'tests', 'scripts',
+      'argocd', 'profiles', 'targets', 'tests',
       path.join('config', 'distribution.env'), 'bootstrap/source.env',
       'requirements-dev.txt', 'bootstrap/config.env',
       'package.json', 'package-lock.json', 'jest.config.js', 'node_modules',
@@ -83,6 +83,7 @@ describe('fork-ready repository distribution', () => {
       'test/platform-services.test.js', 'test/applicationset.test.js',
       'test/application-projects.test.js', 'test/fixtures/catalog-info.yaml',
       'test/helpers/manifests.js', 'test/helpers/configured-repository.js',
+      'scripts/validate-release.js', 'test/release-validator.test.js',
       'test/package.json', 'test/package-lock.json', 'test/jest.config.js',
     ]) expect({required, present: exists(root, required)})
       .toEqual({required, present: true});

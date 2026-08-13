@@ -68,8 +68,9 @@ workshop Keycloak Operator, its operands, or cluster authentication configuratio
 
 Keycloak CRDs remain cluster-scoped and shared even though reconciliation is namespace-scoped. A
 pre-existing Keycloak Operator can coexist only when its effective watch scope does not include
-`cf-idp-keycloak` and the shared CRD versions remain compatible. The installer preflight checks the
-effective CSV target namespaces before `configure-workshop.sh` writes activation configuration. Community
+`cf-idp-keycloak` and the shared CRD versions remain compatible. CF-IDP guarantees its own
+OperatorGroup scope but does not inspect or manage other Operators; operators may run the optional
+coexistence checks documented in the installation and operations guides. Community
 `keycloak-operator.v26.7.1` is the current known-good starting CSV for the required
 `KeycloakOIDCClient` API and `client-admin-api:v2`; it is not a permanent patch-version freeze.
 

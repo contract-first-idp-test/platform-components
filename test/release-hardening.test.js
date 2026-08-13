@@ -1,11 +1,9 @@
 const YAML = require('yaml');
-const path = require('node:path');
-const {spawnSync} = require('node:child_process');
 const {exists, parseDocuments, read, render} = require('./helpers/manifests');
 const {repositoryRoot: root} = require('./helpers/paths');
 
 describe('release-hardening platform contracts', () => {
-  test('isolates the upstream Keycloak operator with automatic approval and a scope preflight', () => {
+  test('owns a namespace-scoped Keycloak operator with automatic approval', () => {
     const resources = render(root, 'operators/keycloak');
     const subscription = resources.find(item => item.kind === 'Subscription');
     expect(subscription.metadata.namespace).toBe('cf-idp-keycloak');
@@ -22,25 +20,8 @@ describe('release-hardening platform contracts', () => {
     expect(resources.find(item => item.kind === 'Namespace').metadata.name)
       .toBe('cf-idp-keycloak');
 
-    const script = read(root, 'bootstrap/preflight.sh');
-    expect(script).toMatch(/keycloaks\.k8s\.keycloak\.org/);
-    expect(script).toMatch(/olm\\\.targetNamespaces/);
-    expect(script).toMatch(/\[\[ \$namespace == "\$target" \]\] && continue/);
-    expect(script).toContain('another Keycloak Operator has an effective watch scope');
-    const command = path.join(root, 'bootstrap/preflight.sh');
-    const env = {
-      ...process.env,
-      PATH: `${path.join(root, 'test/fixtures/bin')}:${process.env.PATH}`,
-    };
-    const passing = spawnSync('bash', [command], {encoding: 'utf8', env});
-    expect(passing).toMatchObject({status: 0});
-    expect(passing.stdout).toContain('scope preflight passed');
-    const failing = spawnSync('bash', [command], {
-      encoding: 'utf8', env: {...env, MOCK_KEYCLOAK_SCOPE_CONFLICT: '1'},
-    });
-    expect(failing.status).toBe(1);
-    expect(failing.stderr).toContain('another Keycloak Operator');
-    expect(failing.stderr).toContain('existing-identity/keycloak-operator.v26.7.1');
+    expect(exists(root, 'bootstrap/preflight.sh')).toBe(false);
+    expect(read(root, 'bootstrap/configure-workshop.sh')).not.toContain('preflight');
 
     const applicationSet = read(root, 'bootstrap/root/platform-applicationset.yaml');
     expect(applicationSet).toContain('name: operator-keycloak');
@@ -51,6 +32,7 @@ describe('release-hardening platform contracts', () => {
     ].join('\n');
     expect(docs).not.toMatch(/approve only the InstallPlan|Subscription is manual/);
     expect(docs).toContain('automatic InstallPlan approval');
+    expect(docs).toContain('optional coexistence checks');
   });
 
   test('generates internal entropy while leaving only externally issued inputs', () => {

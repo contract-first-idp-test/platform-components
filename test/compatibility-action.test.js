@@ -6,12 +6,12 @@ const {validateCompatibility} = require(path.join(
   root, 'components/developer-hub/compatibility-action/compatibility.cjs'));
 
 const compatible = {
-  releaseVersion: '1.1.1',
+  releaseVersion: '1.0.0',
   requires: {
-    platformComponents: '>=1.1.0 <2.0.0',
-    developerCharts: '>=1.0.0 <1.1.0',
+    platformComponents: '>=1.0.0 <2.0.0',
+    developerCharts: '>=1.0.0 <2.0.0',
   },
-  selected: {platformComponents: '1.1.1', developerCharts: '1.0.2'},
+  selected: {platformComponents: '1.0.0', developerCharts: '1.0.0'},
 };
 
 describe('CF-IDP scaffolder compatibility action', () => {
@@ -24,8 +24,8 @@ describe('CF-IDP scaffolder compatibility action', () => {
   });
 
   test.each([
-    ['platform-components', {platformComponents: '1.0.9', developerCharts: '1.0.2'}],
-    ['developer-charts', {platformComponents: '1.1.1', developerCharts: '1.1.0'}],
+    ['platform-components', {platformComponents: '2.0.0', developerCharts: '1.0.0'}],
+    ['developer-charts', {platformComponents: '1.0.0', developerCharts: '2.0.0'}],
   ])('rejects incompatible %s with the selected version in the message', (name, selected) => {
     expect(() => validateCompatibility({...compatible, selected}))
       .toThrow(new RegExp(`requires ${name}.*selected PlatformTarget provides ${name}`));

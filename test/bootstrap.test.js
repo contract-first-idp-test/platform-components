@@ -61,12 +61,12 @@ describe('platform target bootstrap', () => {
           PATH: `${fixtureBin}${path.delimiter}${process.env.PATH}`,
           DEVELOPER_CHARTS_REPOSITORY_URL:
             'https://github.com/fixture-org/developer-charts.git',
-          DEVELOPER_CHARTS_REVISION: 'v1.0.2',
-          DEVELOPER_CHARTS_VERSION: '1.0.2',
+          DEVELOPER_CHARTS_REVISION: 'v1.0.0',
+          DEVELOPER_CHARTS_VERSION: '1.0.0',
           SOFTWARE_TEMPLATES_REPOSITORY_URL:
             'https://github.com/fixture-org/software-templates.git',
-          SOFTWARE_TEMPLATES_REVISION: 'v1.1.1',
-          SOFTWARE_TEMPLATES_VERSION: '1.1.1',
+          SOFTWARE_TEMPLATES_REVISION: 'v1.0.0',
+          SOFTWARE_TEMPLATES_VERSION: '1.0.0',
         },
       });
 
@@ -88,14 +88,14 @@ describe('platform target bootstrap', () => {
       expect(catalog.spec.platform.distribution)
         .toEqual({
           repositoryUrl: 'https://github.com/fixture-org/platform-components.git',
-          version: '1.1.3', revision: 'v1.1.3',
+          version: '1.0.0', revision: 'v1.0.0',
         });
       expect(catalog.spec.platform.tenantAdmission.branch).toBe('test');
       expect(catalog.spec.platform.dependencies.developerCharts).toMatchObject({
-        revision: 'v1.0.2', version: '1.0.2',
+        revision: 'v1.0.0', version: '1.0.0',
       });
       expect(catalog.spec.platform.dependencies.softwareTemplates).toMatchObject({
-        revision: 'v1.1.1', version: '1.1.1',
+        revision: 'v1.0.0', version: '1.0.0',
       });
       expect(catalog.spec.platform.cluster).toEqual({
         name: 'fixture',
@@ -130,7 +130,7 @@ describe('platform target bootstrap', () => {
         resource.kind === 'Application' && resource.metadata.name === 'platform-root');
       expect(rootApplication.spec.source).toMatchObject({
         repoURL: 'https://github.com/fixture-org/platform-components.git',
-        targetRevision: 'v1.1.3',
+        targetRevision: 'v1.0.0',
         path: 'bootstrap/root',
       });
       expect(rootApplication.spec.source.kustomize.patches[0].patch).toContain(
@@ -178,11 +178,11 @@ describe('platform target bootstrap', () => {
           env: {
             ...process.env,
             DEVELOPER_CHARTS_REPOSITORY_URL: 'https://example.invalid/developer-charts.git',
-            DEVELOPER_CHARTS_REVISION: 'v1.0.2',
-            DEVELOPER_CHARTS_VERSION: '1.0.2',
+            DEVELOPER_CHARTS_REVISION: 'v1.0.0',
+            DEVELOPER_CHARTS_VERSION: '1.0.0',
             SOFTWARE_TEMPLATES_REPOSITORY_URL: 'https://example.invalid/software-templates.git',
-            SOFTWARE_TEMPLATES_REVISION: 'v1.1.1',
-            SOFTWARE_TEMPLATES_VERSION: '1.1.1',
+            SOFTWARE_TEMPLATES_REVISION: 'v1.0.0',
+            SOFTWARE_TEMPLATES_VERSION: '1.0.0',
           },
         },
       );

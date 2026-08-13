@@ -1,8 +1,13 @@
 SHELL := /usr/bin/env bash
-.PHONY: test test-install test-clean check validate render render-gitops-operator render-gitops-instance
+.PHONY: test release-check test-install test-clean check validate render render-gitops-operator render-gitops-instance
 
 test: test-install
 	npm test --prefix test
+
+release-check: test
+	node scripts/validate-release.js
+	oc kustomize . >/dev/null
+	oc kustomize configuration >/dev/null
 
 test-install:
 	npm ci --prefix test --loglevel=error

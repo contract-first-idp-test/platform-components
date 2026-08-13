@@ -28,7 +28,7 @@ You need:
    git clone git@github.com:YOUR_ORGANIZATION/platform-components.git
    cd platform-components
    git fetch --tags
-   git switch -c main v1.1.3
+   git switch -c workshop v1.0.0
    ```
 
 2. Configure the workshop target.
@@ -39,17 +39,17 @@ You need:
    ```bash
    oc login https://api.YOUR_WORKSHOP_CLUSTER:6443
    export DEVELOPER_CHARTS_REPOSITORY_URL=https://github.com/YOUR_ORGANIZATION/developer-charts.git
-   export DEVELOPER_CHARTS_REVISION=v1.0.2
-   export DEVELOPER_CHARTS_VERSION=1.0.2
+   export DEVELOPER_CHARTS_REVISION=v1.0.0
+   export DEVELOPER_CHARTS_VERSION=1.0.0
    export SOFTWARE_TEMPLATES_REPOSITORY_URL=https://github.com/YOUR_ORGANIZATION/software-templates.git
-   export SOFTWARE_TEMPLATES_REVISION=v1.1.1
-   export SOFTWARE_TEMPLATES_VERSION=1.1.1
+   export SOFTWARE_TEMPLATES_REVISION=v1.0.0
+   export SOFTWARE_TEMPLATES_VERSION=1.0.0
    ./bootstrap/configure-workshop.sh
    ```
 
    Create or switch to the mutable branch before running the helper; never configure from detached
-   HEAD. The helper records `v1.1.3` as the immutable distribution while it records the actual Git
-   branch (`main` above) as the configuration and tenant-admission target. It generates
+   HEAD. The helper records `v1.0.0` as the immutable distribution while it records the actual Git
+   branch (`workshop` above) as the configuration and tenant-admission target. It generates
    `configuration/catalog-info.yaml`, `configuration/platform-distribution.yaml`, and the bootstrap
    configuration coordinates. The generated target is the source of truth for this workshop. It contains the cluster
    identity, GitHub organization and repository, router-derived service URLs, Dev Spaces URL and
@@ -83,7 +83,7 @@ You need:
    ```bash
    git add bootstrap/kustomization.yaml configuration
    git commit -m "configure workshop platform"
-   git push -u origin main
+   git push -u origin workshop
    ```
 
 5. Bootstrap OpenShift GitOps.
@@ -118,10 +118,11 @@ You need:
    From this point forward, Argo CD owns platform convergence.
 
    CF-IDP deliberately installs the community Keycloak Operator in `cf-idp-keycloak` for
-   declarative `KeycloakOIDCClient` management. Its InstallPlans are approved automatically. The
-   `configure-workshop.sh` preflight fails before activation when another Keycloak Operator's effective scope
-   includes `cf-idp-keycloak`; do not bypass that failure by deleting or taking ownership of an
-   existing identity stack.
+   declarative `KeycloakOIDCClient` management. Its InstallPlans are approved automatically, and
+   its OperatorGroup is namespace-scoped to `cf-idp-keycloak`. CF-IDP does not inspect, modify, or
+   take ownership of other Keycloak Operators. The environmental coexistence requirement is that
+   no other Keycloak Operator effectively watches `cf-idp-keycloak`, and shared CRD versions must
+   remain compatible.
 
    ```bash
    oc get operatorgroup -A
@@ -130,10 +131,20 @@ You need:
      --for=jsonpath='{.status.phase}'=Succeeded --timeout=10m
    ```
 
-   Confirm `OperatorGroup/cf-idp-keycloak` resolves only to `cf-idp-keycloak`. A pre-existing
-   operator may coexist only with a disjoint effective watch scope. CRDs are cluster-scoped and
-   shared, so verify the existing Keycloak and realm resources remain healthy after installation.
-   Version 26.7.1 is the current known-good starting point, not a permanently frozen patch.
+   Confirm `OperatorGroup/cf-idp-keycloak` resolves only to `cf-idp-keycloak`. The following
+   optional coexistence checks show effective CSV target namespaces and the shared Keycloak CRDs:
+
+   ```bash
+   oc get csv -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,TARGETS:.metadata.annotations.olm\.targetNamespaces'
+   oc get crd keycloaks.k8s.keycloak.org \
+     keycloakrealmimports.k8s.keycloak.org \
+     keycloakoidcclients.k8s.keycloak.org
+   ```
+
+   A pre-existing operator may coexist only with a disjoint effective watch scope. Because CRDs
+   are cluster-scoped and shared, verify existing Keycloak and realm resources remain healthy after
+   installation. Version 26.7.1 is the current known-good starting point, not a permanently frozen
+   patch.
 
    Optionally, confirm that the selected platform Applications have appeared:
 

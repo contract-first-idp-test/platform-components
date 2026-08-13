@@ -93,7 +93,6 @@ cluster_name=$(oc get infrastructure cluster \
   -o jsonpath='{.status.infrastructureName}') || die 'could not discover the infrastructure name'
 router_domain=$(oc get ingress.config.openshift.io cluster \
   -o jsonpath='{.spec.domain}') || die 'could not discover the router domain'
-bash "$root/bootstrap/preflight.sh" || die 'Keycloak Operator scope preflight failed'
 cluster_api_url=${cluster_api_url%/}
 router_domain=${router_domain%.}
 [[ $cluster_api_url =~ ^https://[A-Za-z0-9.-]+(:[0-9]+)?$ ]] || die 'cluster API URL is invalid'

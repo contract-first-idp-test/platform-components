@@ -7,12 +7,12 @@ describe('platform-components release contract', () => {
   const target = YAML.parse(read(root, 'test/fixtures/catalog-info.yaml')).spec.platform;
 
   test('versions only the platform contract it owns', () => {
-    expect(release).toEqual({version: '1.1.3'});
+    expect(release).toEqual({version: '1.0.0'});
     expect(release).not.toHaveProperty('requires');
     expect(target.distribution).toEqual({
       repositoryUrl: 'https://github.com/fixture-org/platform-components.git',
       version: release.version,
-      revision: 'v1.1.3',
+      revision: 'v1.0.0',
     });
     expect(target.configuration.revision).toBe('test');
     expect(target.configuration.revision).not.toBe(target.distribution.revision);
@@ -20,10 +20,10 @@ describe('platform-components release contract', () => {
 
   test('publishes exact independently versioned consumer coordinates', () => {
     expect(target.dependencies.developerCharts).toMatchObject({
-      revision: 'v1.0.2', version: '1.0.2',
+      revision: 'v1.0.0', version: '1.0.0',
     });
     expect(target.dependencies.softwareTemplates).toMatchObject({
-      revision: 'v1.1.1', version: '1.1.1', catalogPath: 'catalog-info.yaml',
+      revision: 'v1.0.0', version: '1.0.0', catalogPath: 'catalog-info.yaml',
     });
     expect(target.charts).toEqual(target.dependencies.developerCharts);
     for (const coordinate of [
@@ -46,15 +46,23 @@ describe('platform-components release contract', () => {
   test('dependency patches change installation selection without changing distribution identity', () => {
     const upgraded = structuredClone(target);
     upgraded.dependencies.developerCharts = {
-      ...upgraded.dependencies.developerCharts, revision: 'v1.0.9', version: '1.0.9',
+      ...upgraded.dependencies.developerCharts, revision: 'v1.0.1', version: '1.0.1',
     };
     upgraded.charts = {...upgraded.dependencies.developerCharts};
     upgraded.dependencies.softwareTemplates = {
-      ...upgraded.dependencies.softwareTemplates, revision: 'v1.1.9', version: '1.1.9',
+      ...upgraded.dependencies.softwareTemplates, revision: 'v1.0.1', version: '1.0.1',
     };
     expect(upgraded.distribution).toEqual(target.distribution);
     expect(upgraded.configuration.revision).toBe(target.configuration.revision);
-    expect(release.version).toBe('1.1.3');
+    expect(release.version).toBe('1.0.0');
+  });
+
+  test('installation starts from the immutable distribution on a writable branch', () => {
+    const installation = read(root, 'docs/installation.md');
+    expect(installation).toContain('git switch -c workshop v1.0.0');
+    expect(installation).toContain('git push -u origin workshop');
+    expect(installation).not.toMatch(/git switch -c main v\d+\.\d+\.\d+/);
+    expect(target.configuration.revision).not.toBe(target.distribution.revision);
   });
 
   test('admits the existing Domain resources in their platform namespaces', () => {
