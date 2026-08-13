@@ -12,7 +12,7 @@ spec:
     namespace: openshift-gitops
   source:
     repoURL: "https://github.com/contract-first-idp-test/platform-components.git"
-    targetRevision: "v1.1.2"
+    targetRevision: "v1.1.3"
     path: bootstrap/root
     kustomize:
       patches:
