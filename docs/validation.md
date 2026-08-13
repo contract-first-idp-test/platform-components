@@ -5,10 +5,12 @@
 Run `make test` from the repository root. Its direct equivalent is `npm ci --prefix test` followed
 by `npm test --prefix test`. All Node and Jest tooling is scoped under `test/`; the repository
 itself is not an npm package. The suite checks shell syntax and the
-simplified architecture, exercises
-the workshop helper in a temporary repository with mocked cluster discovery, verifies the helper
-does not edit the inventory, and renders the GitOps operator, GitOps instance, and repository-root
-Kustomizations with normal load restrictions.
+platform target contract, exercises the workshop helper in a temporary repository with mocked
+cluster discovery, and renders the GitOps operator, GitOps instance, inventory paths, and
+repository-root Kustomizations with normal load restrictions.
+
+Release-policy tests are intentionally excluded from the fast suite. `make release-check` runs
+the fast suite, focused release tests, release-candidate validation, and the root render check.
 
 The suite supports both the pristine upstream distribution, where root `catalog-info.yaml` has not
 been generated, and a configured workshop fork where that file is committed. When present, the

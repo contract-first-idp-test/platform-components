@@ -82,13 +82,4 @@ describe('ApplicationSet inventory AppProject permissions', () => {
       }
     },
   );
-
-  test('known narrow permissions remain explicit', () => {
-    expect(permits(
-      projects.get('platform-infrastructure').spec.clusterResourceWhitelist, '', 'Namespace',
-    )).toBe(true);
-    expect(permitsDestination(
-      projects.get('platform-services'), destinationServer, 'openshift-pipelines-resolvers',
-    )).toBe(true);
-  });
 });

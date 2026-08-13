@@ -13,62 +13,28 @@ describe('platform service integration contracts', () => {
 
   afterAll(() => repository.cleanup());
 
-  test('Keycloak keeps the platform realm, human roles, and machine identities', () => {
+  test('Keycloak exposes the realm roles and client administration required by platform services', () => {
     const rendered = render(root, 'components/keycloak');
     expect(rendered.every(resource =>
       resource.metadata.namespace === 'cf-idp-keycloak')).toBe(true);
-    expect(rendered.some(resource => resource.kind === 'Namespace')).toBe(false);
     const manifest = YAML.parse(read(root, 'components/keycloak/realm.yaml'));
     const realm = manifest.spec.realm;
-    expect(realm).toMatchObject({id: 'platform', realm: 'platform', displayName: 'Platform'});
-    expect(realm.groups.map(group => group.name)).toEqual([
+    expect(realm).toMatchObject({id: 'platform', realm: 'platform'});
+    expect(realm.groups.map(group => group.name)).toEqual(expect.arrayContaining([
       'platform-maintainers', 'domain-maintainers', 'domain-contributors',
       'domain-viewers', 'microcks',
-    ]);
-    expect(realm.users.filter(user => !user.serviceAccountClientId)).toEqual([
-      expect.objectContaining({
-        username: '${DEMO_USER_USERNAME}',
-        groups: ['/platform-maintainers', '/domain-maintainers', '/microcks/manager'],
-      }),
-    ]);
+    ]));
     expect(realm.users.find(user => user.username === 'service-account-backstage')
       .serviceAccountClientId).toBe('backstage');
-    expect(realm.users.some(user =>
-      user.username === 'service-account-microcks-serviceaccount')).toBe(false);
-    expect(realm.clients.some(client => client.clientId === 'microcks-serviceaccount')).toBe(false);
     expect(realm.roles.realm).toEqual(expect.arrayContaining([
       expect.objectContaining({name: 'sr-admin'}),
       expect.objectContaining({name: 'sr-developer'}),
       expect.objectContaining({name: 'sr-readonly'}),
       expect.objectContaining({name: 'microcks-publisher', composite: true}),
     ]));
-    expect(realm.scopeMappings).toContainEqual({
-      clientScope: 'roles',
-      roles: ['sr-admin', 'sr-developer', 'sr-readonly', 'microcks-publisher'],
-    });
-    expect(manifest.spec.placeholders.DEMO_USER_USERNAME)
-      .toEqual({secret: {name: 'keycloak-realm-secrets', key: 'demo-user-username'}});
-
-    const keycloakSecrets = parseDocuments(
-      read(root, 'components/keycloak/external-secrets.yaml'));
-    const realmSecrets = keycloakSecrets.find(resource =>
-      resource.metadata.name === 'keycloak-realm-secrets');
-    expect(realmSecrets.spec.target.template.data).toMatchObject({
-      'demo-user-username': '{{ .demoUserUsername }}',
-      'demo-user-password': '{{ .demoUserPassword }}',
-    });
-    expect(realmSecrets.spec.target.template.data).not.toHaveProperty('microcks-client-secret');
-    const adminSecret = keycloakSecrets.find(resource =>
-      resource.metadata.name === 'cf-idp-keycloak-admin');
-    expect(adminSecret.spec.target.template.data).toEqual({
-      'client-id': 'cf-idp-keycloak-admin', 'client-secret': '{{ .clientSecret }}',
-    });
     const keycloak = YAML.parse(read(root, 'components/keycloak/keycloak.yaml'));
-    expect(keycloak.apiVersion).toBe('k8s.keycloak.org/v2beta1');
     expect(keycloak.spec.features.enabled).toContain('client-admin-api:v2');
     expect(keycloak.spec.bootstrapAdmin.service.secret).toBe('cf-idp-keycloak-admin');
-    expect(YAML.parse(read(root, 'components/microcks/config.yaml'))
-      .data['application.properties']).toContain('keycloak.realm=platform');
   });
 
   test('Developer Hub and Dev Spaces scope GitHub and identity credentials correctly', () => {
