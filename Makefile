@@ -7,7 +7,6 @@ test: test-install
 release-check: test
 	node scripts/validate-release.js
 	oc kustomize . >/dev/null
-	oc kustomize configuration >/dev/null
 
 test-install:
 	npm ci --prefix test --loglevel=error

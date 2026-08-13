@@ -14,18 +14,6 @@ spec:
   destinations:
     - server: https://kubernetes.default.svc
       namespace: openshift-gitops
-    - server: https://kubernetes.default.svc
-      namespace: cf-idp-keycloak
-    - server: https://kubernetes.default.svc
-      namespace: cf-idp-secrets
-  clusterResourceWhitelist:
-    - {group: external-secrets.io, kind: ClusterSecretStore}
   namespaceResourceWhitelist:
-    - {group: "", kind: ServiceAccount}
     - {group: argoproj.io, kind: AppProject}
     - {group: argoproj.io, kind: ApplicationSet}
-    - {group: external-secrets.io, kind: ExternalSecret}
-    - {group: generators.external-secrets.io, kind: Password}
-    - {group: k8s.keycloak.org, kind: KeycloakOIDCClient}
-    - {group: rbac.authorization.k8s.io, kind: Role}
-    - {group: rbac.authorization.k8s.io, kind: RoleBinding}

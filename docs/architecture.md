@@ -4,8 +4,8 @@
 
 ## Platform target contract
 
-After `bootstrap/configure-workshop.sh` configures a fork, root `catalog-info.yaml` is a stable
-Location and generated `configuration/catalog-info.yaml` is the public platform-target contract. Backstage, the golden paths,
+After `bootstrap/configure-workshop.sh` configures a fork, the generated root `catalog-info.yaml` is
+the public platform-target contract. Backstage, the golden paths,
 ESO consumers, and the platform ApplicationSet all read the same schema under `spec.platform`.
 All golden-path-managed repositories use `/catalog-info.yaml` as their primary catalog descriptor,
 and one App-scoped GitHub catalog provider discovers that path throughout repositories visible to
@@ -13,7 +13,7 @@ the configured CF-IDP GitHub App installations.
 
 The current golden-path contract remains under `spec.platform`, including repository, tenant
 admission, cluster, dependency, Schema Registry, registry, service, and build facts. Its
-`valuesPath` is `configuration/catalog-info.yaml`, so Domain activation reads the mutable entity from the platform
+`valuesPath` is `catalog-info.yaml`, so Domain activation reads the root entity from the platform
 repository. The target also carries public Argo CD webhook endpoints and the Dev Spaces URL and
 GitHub callback derived from the router domain. The Dev Spaces component applies the declared URL
 to `CheCluster.spec.networking.hostname`, so the callback is known before installation rather than
@@ -22,24 +22,24 @@ depending on an Operator-selected hostname.
 ## GitOps reconciliation
 
 `bootstrap/root/platform-applicationset.yaml` is the operational inventory. Its matrix combines the
-mutable target file with a compact static Application list. The shared template supplies the exact
-distribution repository/revision, destination, synchronization, retry behavior, and one generic router-domain
+root catalog file with a compact static Application list. The shared template supplies the target
+repository, revision, destination, synchronization, retry behavior, and one generic router-domain
 annotation. Every platform operator and component is a Kustomize root; component-local replacements
 interpret that annotation for target-specific hosts and URLs. The only non-Kustomize source branch
-reads tenant admission records from the configuration branch.
+preserves tenant admission's existing directory rendering behavior.
 The controller accepts the per-ApplicationSet `create-update` policy. Generated Applications have
 no resource-deletion finalizer, and inventory removal remains separate from explicit uninstall.
 Retries and self-healing drive all-at-once convergence; the inventory does not claim staged order.
 
 ## Bootstrap and configuration
 
-The repository-root `kustomization.yaml` creates only `platform-configuration`, which follows the
-mutable installation branch. The `configuration/` Kustomization materializes
-`platform-target-config` and creates `platform-root` with an exact distribution repository/tag.
-`platform-root` renders `bootstrap/root` from that tag and injects only the configuration repo/branch
-needed by its Git generators. Platform component Applications use distribution coordinates from the
-target; only tenant admissions use the configuration branch. A dependency selection can therefore
-change without changing or republishing platform implementation.
+The repository-root `kustomization.yaml` is the entry point for both the initial local bootstrap and
+the Argo-managed `platform-root` Application. It includes `bootstrap/root` and generates
+`platform-target-config` directly from the root `catalog-info.yaml`, so normal Kustomize load
+restrictions remain enabled. `bootstrap/root/kustomization.yaml` contains the two bootstrap
+coordinates needed before the ApplicationSet can read the catalog. Kustomize injects them into the
+root Application, the Git file generator, and AppProject source allowlists. The configuration
+helper changes only those literals and the root catalog entity.
 
 The public target is materialized into `platform-target-config`. The Keycloak realm is `platform`.
 The standard human groups are `platform-maintainers`, `domain-maintainers`,
@@ -53,7 +53,7 @@ are kept directly in their consuming manifests. External credentials remain loca
 and aggregated in `platform-generated-secrets` with `CreatedOnce`, orphan, and retain semantics.
 
 The activated workshop has two source Secrets in `cf-idp-secrets`: `platform-target-config`,
-generated from public `configuration/catalog-info.yaml` as `platform.yaml`; and `platform-secrets`, created from
+generated from public `catalog-info.yaml` as `platform.yaml`; and `platform-secrets`, created from
 ignored `bootstrap/secrets.env`. Separate `ClusterSecretStore/cf-idp-config` and
 `ClusterSecretStore/cf-idp-secrets` contracts let namespace-local ExternalSecrets combine public
 target facts with credentials while workloads depend only on stable local Secret names.
@@ -73,12 +73,6 @@ OperatorGroup scope but does not inspect or manage other Operators; operators ma
 coexistence checks documented in the installation and operations guides. Community
 `keycloak-operator.v26.7.1` is the current known-good starting CSV for the required
 `KeycloakOIDCClient` API and `client-admin-api:v2`; it is not a permanent patch-version freeze.
-
-Each tenant admission PR adds an AppProject annotated with the Domain repository coordinate. The
-platform-owned `tenant-domain-applications` ApplicationSet combines those records with the current
-PlatformTarget. It resolves the developer-charts tag on every reconciliation, so existing admitted
-Domains converge when a compatible chart patch is selected; no Domain recreation or generated
-Application edit is required.
 
 Each Domain gets an exact-name, get-only reader and a conditioned ClusterSecretStore. Only a
 namespace carrying both the admitted Domain label and the platform-controlled build-environment
@@ -105,12 +99,10 @@ credentials for per-user GitHub authorization. Human Developer Hub authenticatio
 Keycloak, and the App private key never enters the Dev Spaces namespace. See the
 [authoritative App setup](installation.md#configure-the-cf-idp-github-app).
 
-The public target also declares the released Software Templates repository, exact revision, and
-artifact version. Developer Hub reads that publication coordinate to build one revision-aware catalog location, so an installer does not
+The public target also declares the released Software Templates repository and revision. Developer
+Hub reads that dependency to build one revision-aware catalog location, so an installer does not
 need a sibling checkout or a workshop-specific templates fork. The configuration helper records
-the platform target; it does not discover or rewrite dependency contents. This discovery coordinate
-does not make Software Templates a runtime compatibility dependency of platform-components. See
-[Release and compatibility model](release-versioning.md).
+the platform target; it does not discover or rewrite dependency contents.
 
 The in-cluster Kubernetes integration keeps authentication and TLS trust independent. It uses the
 existing `backstage-cluster-viewer` token, connects to `https://kubernetes.default.svc`, and trusts

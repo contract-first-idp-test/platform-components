@@ -5,7 +5,6 @@ const repositoryRoot = path.resolve(testRoot, '..');
 
 module.exports = {
   rootDir: repositoryRoot,
-  moduleDirectories: ['node_modules', '<rootDir>/test/node_modules'],
   testEnvironment: 'node',
   testMatch: ['<rootDir>/test/**/*.test.js'],
   testPathIgnorePatterns: [

@@ -10,9 +10,9 @@ the workshop helper in a temporary repository with mocked cluster discovery, ver
 does not edit the inventory, and renders the GitOps operator, GitOps instance, and repository-root
 Kustomizations with normal load restrictions.
 
-The suite supports both the pristine distribution, where `configuration/` has not been generated,
-and a configured installation branch where that directory is committed. Root `catalog-info.yaml`
-is always the stable Location; the generated configuration catalog is validated as the target.
+The suite supports both the pristine upstream distribution, where root `catalog-info.yaml` has not
+been generated, and a configured workshop fork where that file is committed. When present, the
+root catalog is validated as the platform-target contract.
 
 ApplicationSet expansion remains a live-controller verification because local validation does not
 reimplement the OpenShift GitOps controller.
@@ -20,7 +20,7 @@ reimplement the OpenShift GitOps controller.
 ## Installation validation
 
 These checks are optional after the workshop guide hands reconciliation to Argo CD. The generated
-`configuration/catalog-info.yaml` remains the expected public state; compare live URLs with the descriptor rather
+`catalog-info.yaml` remains the expected public state; compare live URLs with the descriptor rather
 than deriving new expected values from cluster metadata.
 
 Confirm that the ApplicationSet and its selected Applications exist, and that External Secrets are
@@ -70,7 +70,7 @@ oc get checluster devspaces -n openshift-devspaces \
   -o jsonpath='{.status.cheURL}{"\n"}'
 ```
 
-Compare that URL with `spec.platform.services.devSpaces.url` in `configuration/catalog-info.yaml`; the registered
+Compare that URL with `spec.platform.services.devSpaces.url` in `catalog-info.yaml`; the registered
 callback must match `spec.platform.services.devSpaces.githubCallbackUrl`. Start a workspace from an
 App-visible repository and confirm clone, pull, and push authorization without a personal access
 token or a separate GitHub OAuth App.

@@ -11,16 +11,14 @@ spec:
   type: contract-first-idp-target
   platform:
     distribution:
-      repositoryUrl: https://github.com/fixture-org/platform-components.git
       version: 1.0.0
-      revision: v1.0.0
     configuration:
       host: "github.com"
       organization: "fixture-org"
       repository: "platform-components"
       repositoryUrl: "https://github.com/fixture-org/platform-components.git"
       revision: "test"
-      valuesPath: configuration/catalog-info.yaml
+      valuesPath: catalog-info.yaml
     tenantAdmission:
       branch: "test"
       path: tenants

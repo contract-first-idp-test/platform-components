@@ -8,11 +8,6 @@ data:
     includes:
       - dynamic-plugins.default.yaml
     plugins:
-      # Resolve the projected ConfigMap's physical data directory. Packaging the
-      # mount root would preserve its package.json symlink without the ..data
-      # target in dynamic-plugins-root.
-      - package: ./local-plugins/contract-first-idp-compatibility/..data
-        disabled: false
       - package: ./dynamic-plugins/dist/backstage-community-plugin-catalog-backend-module-keycloak-dynamic
         disabled: false
       - package: ./dynamic-plugins/dist/backstage-plugin-scaffolder-backend-module-github-dynamic

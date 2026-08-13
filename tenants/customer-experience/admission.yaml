@@ -1,4 +1,0 @@
-admission:
-  name: customer-experience
-  project: tenant-customer-experience-admission
-  repositoryUrl: https://github.com/contract-first-idp-test/customer-experience-domain.git

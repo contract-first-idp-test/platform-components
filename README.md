@@ -21,7 +21,7 @@ GitHub App setup, exact commands, validation, and troubleshooting.
 
 The minimal installation path is:
 
-1. Start a mutable configuration branch from the desired exact distribution tag, log in to OpenShift, and run
+1. Fork and clone this repository, log in to OpenShift, and run
    `./bootstrap/configure-workshop.sh`.
 2. Configure and install the CF-IDP GitHub App, create the standard teams, and populate the
    ignored `bootstrap/secrets.env` file.
@@ -38,7 +38,7 @@ Registry, identity, External Secrets, and supported Resource operators. See the
 
 ## Architecture
 
-Root `catalog-info.yaml` locates the generated `configuration/catalog-info.yaml` public platform-target contract. The root
+The configured root `catalog-info.yaml` is the public platform-target contract. The root
 ApplicationSet combines that contract with the selected inventory, while credentials remain in a
 separate cluster Secret. See [Architecture](docs/architecture.md) for the ownership, discovery,
 identity, and configuration contracts.
@@ -50,7 +50,7 @@ identity, and configuration contracts.
 - [Component inventory](docs/component-inventory.md)
 - [Operations](docs/operations.md)
 - [Validation and development](docs/validation.md)
-- [Release and compatibility model](docs/release-versioning.md)
+- [Release policy](docs/release-versioning.md)
 
 ## Repository Structure
 
@@ -58,15 +58,14 @@ identity, and configuration contracts.
 | --- | --- |
 | `bootstrap/` | Configuration helper and OpenShift GitOps bootstrap manifests |
 | `bootstrap/root/platform-applicationset.yaml` | Selected operators and shared services |
-| `configuration/` | Mutable per-installation target, exact dependency selections, and distribution Application |
 | `components/` | Kustomize components for platform services |
 | `operators/` | Operator installation and configuration |
 | `tenants/` | GitOps admission entries for tenant Domains |
 | `docs/` | Installation, architecture, operations, inventory, and validation guides |
 | `test/` | Deterministic repository and rendered-manifest tests |
 
-After configuration, the main files owned by an installer are generated `configuration/`,
-`bootstrap/kustomization.yaml`, optional tenant admissions, and the ignored
+After configuration, the main files owned by an installer are the generated `catalog-info.yaml`,
+the root `kustomization.yaml`, the ApplicationSet inventory, and the ignored
 `bootstrap/secrets.env` credential file.
 
 ## Development

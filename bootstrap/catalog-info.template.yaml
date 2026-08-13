@@ -11,18 +11,16 @@ spec:
   type: contract-first-idp-target
   platform:
     distribution:
-      repositoryUrl: "@@PLATFORM_DISTRIBUTION_REPO_URL@@"
-      version: "@@PLATFORM_VERSION@@"
-      revision: "@@PLATFORM_DISTRIBUTION_REVISION@@"
+      version: 1.0.0
     configuration:
       host: "@@SCM_HOST@@"
       organization: "@@SCM_ORGANIZATION@@"
       repository: "@@SCM_REPOSITORY@@"
       repositoryUrl: "@@PLATFORM_REPO_URL@@"
-      revision: "@@PLATFORM_CONFIGURATION_REVISION@@"
-      valuesPath: configuration/catalog-info.yaml
+      revision: "@@PLATFORM_REVISION@@"
+      valuesPath: catalog-info.yaml
     tenantAdmission:
-      branch: "@@PLATFORM_CONFIGURATION_REVISION@@"
+      branch: "@@PLATFORM_REVISION@@"
       path: tenants
     target:
       name: workshop
@@ -38,21 +36,21 @@ spec:
         applicationSet: "https://openshift-gitops-applicationset-controller-openshift-gitops.@@ROUTER_DOMAIN@@/api/webhook"
     dependencies:
       softwareTemplates:
-        host: "@@SOFTWARE_TEMPLATES_HOST@@"
-        organization: "@@SOFTWARE_TEMPLATES_ORGANIZATION@@"
-        repository: "@@SOFTWARE_TEMPLATES_REPOSITORY@@"
-        repositoryUrl: "@@SOFTWARE_TEMPLATES_REPO_URL@@"
-        revision: "@@SOFTWARE_TEMPLATES_REVISION@@"
-        version: "@@SOFTWARE_TEMPLATES_VERSION@@"
+        host: github.com
+        organization: contract-first-idp-test
+        repository: software-templates
+        repositoryUrl: https://github.com/contract-first-idp-test/software-templates.git
+        revision: v1.0.0
+        version: 1.0.0
         catalogPath: catalog-info.yaml
       developerCharts:
-        repositoryUrl: "@@DEVELOPER_CHARTS_REPO_URL@@"
-        revision: "@@DEVELOPER_CHARTS_REVISION@@"
-        version: "@@DEVELOPER_CHARTS_VERSION@@"
+        repositoryUrl: https://github.com/contract-first-idp-test/developer-charts.git
+        revision: v1.0.0
+        version: 1.0.0
     charts:
-      repositoryUrl: "@@DEVELOPER_CHARTS_REPO_URL@@"
-      revision: "@@DEVELOPER_CHARTS_REVISION@@"
-      version: "@@DEVELOPER_CHARTS_VERSION@@"
+      repositoryUrl: https://github.com/contract-first-idp-test/developer-charts.git
+      revision: v1.0.0
+      version: 1.0.0
     schemaRegistry:
       apiUrl: "https://apicurio.@@ROUTER_DOMAIN@@/apis/registry/v3"
       uiUrl: "https://apicurio-ui.@@ROUTER_DOMAIN@@"

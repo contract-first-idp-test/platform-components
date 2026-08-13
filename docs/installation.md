@@ -4,9 +4,8 @@
 
 Set up a workshop-ready Contract-First IDP on OpenShift with a small bootstrap and a declarative
 GitOps handoff. You will configure this repository for one cluster, add the external credentials,
-and start OpenShift GitOps. The root `catalog-info.yaml` points Backstage at the public mutable
-target in `configuration/catalog-info.yaml`; private values stay in an ignored local file and a
-cluster Secret.
+and start OpenShift GitOps. The public workshop configuration lives in the root
+`catalog-info.yaml`; private values stay in an ignored local file and a cluster Secret.
 
 The happy path is: clone, configure the target, configure GitHub, commit, bootstrap GitOps, and
 start the platform.
@@ -27,8 +26,7 @@ You need:
    ```bash
    git clone git@github.com:YOUR_ORGANIZATION/platform-components.git
    cd platform-components
-   git fetch --tags
-   git switch -c workshop v1.0.0
+   git switch main
    ```
 
 2. Configure the workshop target.
@@ -38,27 +36,36 @@ You need:
 
    ```bash
    oc login https://api.YOUR_WORKSHOP_CLUSTER:6443
-   export DEVELOPER_CHARTS_REPOSITORY_URL=https://github.com/YOUR_ORGANIZATION/developer-charts.git
-   export DEVELOPER_CHARTS_REVISION=v1.0.0
-   export DEVELOPER_CHARTS_VERSION=1.0.0
-   export SOFTWARE_TEMPLATES_REPOSITORY_URL=https://github.com/YOUR_ORGANIZATION/software-templates.git
-   export SOFTWARE_TEMPLATES_REVISION=v1.0.0
-   export SOFTWARE_TEMPLATES_VERSION=1.0.0
    ./bootstrap/configure-workshop.sh
    ```
 
-   Create or switch to the mutable branch before running the helper; never configure from detached
-   HEAD. The helper records `v1.0.0` as the immutable distribution while it records the actual Git
-   branch (`workshop` above) as the configuration and tenant-admission target. It generates
-   `configuration/catalog-info.yaml`, `configuration/platform-distribution.yaml`, and the bootstrap
-   configuration coordinates. The generated target is the source of truth for this workshop. It contains the cluster
+   The helper generates `catalog-info.yaml` and updates the bootstrap repository coordinates.
+   `catalog-info.yaml` is the source of truth for this workshop target. It contains the cluster
    identity, GitHub organization and repository, router-derived service URLs, Dev Spaces URL and
    GitHub callback, and the other public platform configuration. Open it for a quick review; later
    steps refer to values in this descriptor instead of reconstructing them from the cluster.
 
+   The target selects independently released dependencies with an exact immutable revision and a
+   semantic version. For example:
+
+   ```yaml
+   dependencies:
+     softwareTemplates:
+       repositoryUrl: https://github.com/YOUR_ORGANIZATION/software-templates.git
+       revision: v1.0.0
+       version: 1.0.0
+     developerCharts:
+       repositoryUrl: https://github.com/YOUR_ORGANIZATION/developer-charts.git
+       revision: v1.0.0
+       version: 1.0.0
+   ```
+
+   Selecting a compatible dependency patch later is an ordinary edit and commit to this platform
+   fork on `main`; it does not require a new platform-components release.
+
 3. Configure GitHub and credentials.
 
-   Configure the CF-IDP GitHub App with the values in your generated `configuration/catalog-info.yaml`; follow
+   Configure the CF-IDP GitHub App with the values in your generated `catalog-info.yaml`; follow
    [Configure the CF-IDP GitHub App](#configure-the-cf-idp-github-app), then install the App into the
    workshop organization. Confirm that `domain-maintainers`, `domain-contributors`, and
    `domain-viewers` exist before using the golden paths.
@@ -81,9 +88,10 @@ You need:
    before committing.
 
    ```bash
-   git add bootstrap/kustomization.yaml configuration
+   git add catalog-info.yaml bootstrap/root/kustomization.yaml \
+     bootstrap/root/platform-applicationset.yaml
    git commit -m "configure workshop platform"
-   git push -u origin workshop
+   git push
    ```
 
 5. Bootstrap OpenShift GitOps.
@@ -132,10 +140,11 @@ You need:
    ```
 
    Confirm `OperatorGroup/cf-idp-keycloak` resolves only to `cf-idp-keycloak`. The following
-   optional coexistence checks show effective CSV target namespaces and the shared Keycloak CRDs:
+   optional coexistence checks show effective CSV target namespaces and shared Keycloak CRDs:
 
    ```bash
-   oc get csv -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,TARGETS:.metadata.annotations.olm\.targetNamespaces'
+   oc get csv -A \
+     -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,TARGETS:.metadata.annotations.olm\.targetNamespaces'
    oc get crd keycloaks.k8s.keycloak.org \
      keycloakrealmimports.k8s.keycloak.org \
      keycloakoidcclients.k8s.keycloak.org
@@ -154,7 +163,7 @@ You need:
 
 ## After Installation
 
-Open Developer Hub using `spec.platform.services.developerHub.url` from `configuration/catalog-info.yaml`. Sign in
+Open Developer Hub using `spec.platform.services.developerHub.url` from `catalog-info.yaml`. Sign in
 through Keycloak with the configured `DEMO_USER_USERNAME`; retrieve its generated password without
 printing it into logs or reports:
 
@@ -172,7 +181,7 @@ For ongoing changes and credential rotation, see [Operations](operations.md).
 ## Configure the CF-IDP GitHub App
 
 Create one CF-IDP GitHub App, or reuse an existing App with the settings below. Read all
-cluster-specific URLs from generated `configuration/catalog-info.yaml`.
+cluster-specific URLs from the generated `catalog-info.yaml`.
 
 1. In the App-owning GitHub account or organization, open **Settings → Developer settings → GitHub
    Apps → New GitHub App**.
@@ -181,8 +190,8 @@ cluster-specific URLs from generated `configuration/catalog-info.yaml`.
    | GitHub field | Workshop value |
    | --- | --- |
    | GitHub App name | A globally unique name such as `CF-IDP Workshop` |
-   | Homepage URL | `spec.platform.services.devSpaces.url` from `configuration/catalog-info.yaml` |
-   | Callback URL | `spec.platform.services.devSpaces.githubCallbackUrl` from `configuration/catalog-info.yaml` |
+   | Homepage URL | `spec.platform.services.devSpaces.url` from `catalog-info.yaml` |
+   | Callback URL | `spec.platform.services.devSpaces.githubCallbackUrl` from `catalog-info.yaml` |
    | Webhook | Clear **Active** |
    | Where can this GitHub App be installed? | **Any account** |
 
