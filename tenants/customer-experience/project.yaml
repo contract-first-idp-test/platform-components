@@ -14,6 +14,10 @@ spec:
   destinations:
     - server: https://kubernetes.default.svc
       namespace: openshift-gitops
+    - server: https://kubernetes.default.svc
+      namespace: cf-idp-keycloak
+    - server: https://kubernetes.default.svc
+      namespace: cf-idp-secrets
   clusterResourceWhitelist:
     - {group: external-secrets.io, kind: ClusterSecretStore}
   namespaceResourceWhitelist:
