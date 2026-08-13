@@ -30,6 +30,9 @@ describe('release-hardening platform contracts', () => {
       'microcks-mongodb', 'microcks-mongodb-admin', 'quay-admin', 'gitea-admin',
       'gitea-secret-key', 'gitea-internal-token', 'gitea-jwt',
     ]));
+    const realmPassword = passwords.find(item => item.metadata.name === 'demo-user');
+    expect(realmPassword.spec.symbols).toBeGreaterThan(0);
+    expect(realmPassword.spec.symbolCharacters).not.toMatch(/["\\]/);
     const platform = generated.find(item =>
       item.kind === 'ExternalSecret' && item.metadata.name === 'platform-generated-secrets');
     expect(platform.spec).toMatchObject({
