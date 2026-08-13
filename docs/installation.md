@@ -14,7 +14,7 @@ start the platform.
 
 You need:
 
-- cluster-admin access to an OpenShift cluster;
+- an already authenticated `oc` session for the target OpenShift cluster with cluster-admin access;
 - a GitHub organization for the workshop and permission to install a GitHub App there;
 - a fork of `platform-components` in an organization or account you can push to;
 - `git` and `oc` on your workstation.
@@ -31,11 +31,11 @@ You need:
 
 2. Configure the workshop target.
 
-   Log in as a cluster administrator, then run the supported configuration helper from the
+   Before continuing, ensure the current `oc` session is already authenticated to the target
+   cluster with cluster-admin access. Then run the supported configuration helper from the
    repository root.
 
    ```bash
-   oc login https://api.YOUR_WORKSHOP_CLUSTER:6443
    ./bootstrap/configure-workshop.sh
    ```
 
@@ -153,7 +153,8 @@ You need:
    A pre-existing operator may coexist only with a disjoint effective watch scope. Because CRDs
    are cluster-scoped and shared, verify existing Keycloak and realm resources remain healthy after
    installation. Version 26.7.1 is the current known-good starting point, not a permanently frozen
-   patch.
+   patch. See [Parallel Keycloak architecture](keycloak-parallel-identity.md) for why CF-IDP owns
+   this instance and how declarative clients compose with ESO-managed credentials.
 
    Optionally, confirm that the selected platform Applications have appeared:
 

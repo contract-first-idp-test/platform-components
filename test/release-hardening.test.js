@@ -29,10 +29,19 @@ describe('release-hardening platform contracts', () => {
     expect(applicationSet).not.toContain('RHBK Operator already');
     const docs = [
       read(root, 'docs/installation.md'), read(root, 'docs/operations.md'),
+      read(root, 'docs/component-inventory.md'),
+      read(root, 'docs/keycloak-parallel-identity.md'),
     ].join('\n');
     expect(docs).not.toMatch(/approve only the InstallPlan|Subscription is manual/);
+    expect(read(root, 'docs/component-inventory.md')).not.toMatch(/RHBK|Red Hat Keycloak Operator/);
+    expect(read(root, 'docs/component-inventory.md')).toContain(
+      '| Keycloak | Community Operator, namespace-scoped to `cf-idp-keycloak` | `fast` / starting from 26.7.1 |',
+    );
     expect(docs).toContain('automatic InstallPlan approval');
     expect(docs).toContain('optional coexistence checks');
+    expect(docs).toContain('Declarative `KeycloakOIDCClient` resources');
+    expect(docs).toMatch(/users do not\s+manually manufacture or copy client credentials/);
+    expect(read(root, 'docs/installation.md')).not.toContain('oc login');
   });
 
   test('generates internal entropy while leaving only externally issued inputs', () => {

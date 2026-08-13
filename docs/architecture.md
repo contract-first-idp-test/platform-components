@@ -65,6 +65,8 @@ canonical `<domain>-apicurio` and `<domain>-microcks` Secrets in `cf-idp-secrets
 because declarative OIDC client management is part of the platform contract. Its OperatorGroup and
 all CF-IDP Keycloak operands are isolated in `cf-idp-keycloak`; CF-IDP does not own an existing
 workshop Keycloak Operator, its operands, or cluster authentication configuration.
+The rationale and current ESO-backed client lifecycle are described in
+[Parallel Keycloak architecture](keycloak-parallel-identity.md).
 
 Keycloak CRDs remain cluster-scoped and shared even though reconciliation is namespace-scoped. A
 pre-existing Keycloak Operator can coexist only when its effective watch scope does not include

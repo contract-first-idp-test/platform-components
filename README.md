@@ -21,7 +21,8 @@ GitHub App setup, exact commands, validation, and troubleshooting.
 
 The minimal installation path is:
 
-1. Fork and clone this repository, log in to OpenShift, and run
+1. Fork and clone this repository, ensure `oc` already has an authenticated cluster-admin session,
+   and run
    `./bootstrap/configure-workshop.sh`.
 2. Configure and install the CF-IDP GitHub App, create the standard teams, and populate the
    ignored `bootstrap/secrets.env` file.
@@ -41,12 +42,14 @@ Registry, identity, External Secrets, and supported Resource operators. See the
 The configured root `catalog-info.yaml` is the public platform-target contract. The root
 ApplicationSet combines that contract with the selected inventory, while credentials remain in a
 separate cluster Secret. See [Architecture](docs/architecture.md) for the ownership, discovery,
-identity, and configuration contracts.
+identity, and configuration contracts, including the
+[parallel Keycloak decision](docs/keycloak-parallel-identity.md).
 
 ## Documentation
 
 - [Installation](docs/installation.md)
 - [Architecture](docs/architecture.md)
+- [Parallel Keycloak architecture](docs/keycloak-parallel-identity.md)
 - [Component inventory](docs/component-inventory.md)
 - [Operations](docs/operations.md)
 - [Validation and development](docs/validation.md)

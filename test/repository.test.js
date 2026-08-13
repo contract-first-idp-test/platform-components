@@ -78,7 +78,7 @@ describe('fork-ready repository distribution', () => {
       'test/platform-services.test.js', 'test/applicationset.test.js',
       'test/application-projects.test.js', 'test/fixtures/catalog-info.yaml',
       'test/helpers/manifests.js', 'test/helpers/configured-repository.js',
-      'release.yaml', 'scripts/validate-release.js', 'test/release-validator.test.js',
+      'release.yaml', 'test/validate-release.js', 'test/release-validator.test.js',
       'test/package.json', 'test/package-lock.json', 'test/jest.config.js',
     ]) expect({required, present: exists(root, required)})
       .toEqual({required, present: true});

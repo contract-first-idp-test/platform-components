@@ -5,7 +5,7 @@ test: test-install
 	npm test --prefix test
 
 release-check: test
-	node scripts/validate-release.js
+	node test/validate-release.js
 	oc kustomize . >/dev/null
 
 test-install:

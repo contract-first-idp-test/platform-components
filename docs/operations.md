@@ -51,6 +51,9 @@ publisher Secret is a security defect.
 
 ## Keycloak Operator and clients
 
+See [Parallel Keycloak architecture](keycloak-parallel-identity.md) for the ownership decision and
+the declarative client capability that motivates the dedicated CF-IDP instance.
+
 The CF-IDP Keycloak Subscription uses automatic InstallPlan approval and starts from the current
 known-good `keycloak-operator.v26.7.1`. The `fast` channel may advance; the operational contract is
 support for declarative `KeycloakOIDCClient`, not permanent patch immutability. The CF-IDP operator,
