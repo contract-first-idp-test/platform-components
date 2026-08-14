@@ -15,11 +15,6 @@ spec: {length: 48, digits: 8, symbols: 0, noUpper: false, allowRepeat: true, sec
 ---
 apiVersion: generators.external-secrets.io/v1alpha1
 kind: Password
-metadata: {name: demo-user, namespace: cf-idp-secrets}
-spec: {length: 32, digits: 6, symbols: 4, symbolCharacters: '-_$@', noUpper: false, allowRepeat: true, secretKeys: [DEMO_USER_PASSWORD]}
----
-apiVersion: generators.external-secrets.io/v1alpha1
-kind: Password
 metadata: {name: microcks-mongodb, namespace: cf-idp-secrets}
 spec: {length: 40, digits: 8, symbols: 0, noUpper: false, allowRepeat: true, secretKeys: [MICROCKS_MONGODB_PASSWORD]}
 ---
@@ -68,7 +63,6 @@ spec:
     - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: backstage-backend}}
     - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: backstage-keycloak}}
     - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: keycloak-client-admin}}
-    - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: demo-user}}
     - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: microcks-mongodb}}
     - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: microcks-mongodb-admin}}
     - sourceRef: {generatorRef: {apiVersion: generators.external-secrets.io/v1alpha1, kind: Password, name: quay-admin}}

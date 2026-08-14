@@ -1,5 +1,5 @@
 const YAML = require('yaml');
-const {read, render} = require('./helpers/manifests');
+const {read, render, parseDocuments} = require('./helpers/manifests');
 const {repositoryRoot: root} = require('./helpers/paths');
 
 describe('release-hardening platform contracts', () => {
@@ -22,17 +22,15 @@ describe('release-hardening platform contracts', () => {
 
   });
 
-  test('generates internal entropy while leaving only externally issued inputs', () => {
+  test('generates internal entropy while preserving installer-owned inputs', () => {
     const generated = render(root, 'components/external-secrets');
     const passwords = generated.filter(item => item.kind === 'Password');
     expect(passwords.map(item => item.metadata.name)).toEqual(expect.arrayContaining([
-      'backstage-backend', 'backstage-keycloak', 'keycloak-client-admin', 'demo-user',
+      'backstage-backend', 'backstage-keycloak', 'keycloak-client-admin',
       'microcks-mongodb', 'microcks-mongodb-admin', 'quay-admin', 'gitea-admin',
       'gitea-secret-key', 'gitea-internal-token', 'gitea-jwt',
     ]));
-    const realmPassword = passwords.find(item => item.metadata.name === 'demo-user');
-    expect(realmPassword.spec.symbols).toBeGreaterThan(0);
-    expect(realmPassword.spec.symbolCharacters).not.toMatch(/["\\]/);
+    expect(passwords.map(item => item.metadata.name)).not.toContain('demo-user');
     const platform = generated.find(item =>
       item.kind === 'ExternalSecret' && item.metadata.name === 'platform-generated-secrets');
     expect(platform.spec).toMatchObject({
@@ -42,11 +40,21 @@ describe('release-hardening platform contracts', () => {
     const example = read(root, 'bootstrap/secrets.env.example');
     for (const removed of [
       'BACKSTAGE_BACKEND_SECRET', 'KEYCLOAK_BACKSTAGE_CLIENT_SECRET',
-      'DEMO_USER_PASSWORD', 'MICROCKS_MONGODB_PASSWORD', 'QUAY_ADMIN_PASSWORD',
+      'MICROCKS_MONGODB_PASSWORD', 'QUAY_ADMIN_PASSWORD',
       'GITEA_ADMIN_PASSWORD', 'GITEA_SECRET_KEY', 'GITEA_INTERNAL_TOKEN',
       'GITEA_JWT_SECRET',
     ]) expect(example).not.toContain(removed);
     expect(example).toContain('GITHUB_APP_CLIENT_SECRET');
+    expect(example).toContain('DEMO_USER_PASSWORD=');
+
+    const keycloakSecrets = parseDocuments(
+      read(root, 'components/keycloak/external-secrets.yaml'),
+    ).find(item => item.metadata.name === 'keycloak-realm-secrets');
+    const demoPassword = keycloakSecrets.spec.data.find(item =>
+      item.secretKey === 'demoUserPassword');
+    expect(demoPassword.remoteRef).toEqual({
+      key: 'platform-secrets', property: 'DEMO_USER_PASSWORD',
+    });
   });
 
   test('platform Kubernetes secret stores use exact-key get-only readers', () => {

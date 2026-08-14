@@ -9,6 +9,11 @@ coordinates, or the ApplicationSet inventory. Commit and push them before asking
 reconcile. Credential rotation updates ignored `bootstrap/secrets.env`, recreates
 `platform-secrets`, and lets ESO refresh workload-local Secrets.
 
+`DEMO_USER_PASSWORD` is an installer-selected clean-install input. Changing it in
+`bootstrap/secrets.env` and recreating `platform-secrets` does not update a user in an already
+imported Keycloak realm; use Keycloak's normal user password administration for an existing
+installation.
+
 ## Developer Hub and Dev Spaces GitHub App rotation
 
 The [workshop App procedure](installation.md#configure-the-cf-idp-github-app) defines the single
