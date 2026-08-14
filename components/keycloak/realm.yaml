@@ -90,7 +90,10 @@ spec:
         path: /microcks/manager
         attributes: {}
         realmRoles: []
-        clientRoles: {}
+        clientRoles:
+          microcks-app:
+          - manager
+          - user
         subGroups: []
     users:
     - username: ${DEMO_USER_USERNAME}

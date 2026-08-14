@@ -37,6 +37,26 @@ describe('platform service integration contracts', () => {
     expect(keycloak.spec.bootstrapAdmin.service.secret).toBe('cf-idp-keycloak-admin');
   });
 
+  test('Microcks manager group receives the roles used for browser API authorization', () => {
+    const realm = YAML.parse(read(root, 'components/keycloak/realm.yaml')).spec.realm;
+    const microcks = realm.groups.find(group => group.path === '/microcks');
+    const manager = microcks.subGroups.find(group => group.path === '/microcks/manager');
+    const properties = Object.fromEntries(YAML.parse(
+      read(root, 'components/microcks/config.yaml'),
+    ).data['application.properties'].split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('#'))
+      .map(line => {
+        const separator = line.indexOf('=');
+        return [line.slice(0, separator), line.slice(separator + 1)];
+      }));
+
+    expect(properties['keycloak.use-resource-role-mappings']).toBe('true');
+    expect(manager.clientRoles[properties['keycloak.resource']]).toEqual([
+      'manager', 'user',
+    ]);
+  });
+
   test('Developer Hub and Dev Spaces scope GitHub and identity credentials correctly', () => {
     const appConfigSource = YAML.parse(read(root, 'components/developer-hub/app-config.yaml'))
       .data['app-config-rhdh.yaml'];
